@@ -1,0 +1,46 @@
+---
+title: "Exploration"
+author: "Mariah Loehr"
+date: "2024-06-10"
+output: pdf_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE, results = 'hide')
+library(tidyverse)
+library(plotly)
+library(ggtree)
+library(packcircles)
+
+# MN_puof <- readr::read_csv(
+#   "https://www.math.carleton.edu/ckelling/data_science/MN_Police_Use_of_Force.csv")
+```
+
+```{r donut chart}
+donut <- ggplot(data, aes(ymax=ymax, ymin=ymin, xmax = 4, xmin=3, fill = category)) +
+  geom_rect() +
+  coord_polar(theta = "y") +
+  xlim(c(2,4)) +
+  theme_void()
+  
+ggplotly(donut, tooltip = "text")
+```
+
+```{r bubble chart}
+packing <- circleProgressiveLayout(data$value, sizetype = 'area')
+
+data = cbind(data, packing)
+
+dat.gg <- circleLayoutVertices(packing, npoints = 50)
+
+bubble <- ggplot() +
+  geom_polygon(data = dat.gg, aes(x, y, group = id, fill = as.factor(id)), color = "black", alpha = 0.6) +
+  scale_size_continuous(range = c(1,4)) +
+  theme_void() +
+  theme(legend.position = "none") +
+  coord_equal()
+
+ggplotly(bubble)
+```
