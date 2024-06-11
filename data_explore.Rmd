@@ -14,29 +14,46 @@ library(plotly)
 library(ggtree)
 library(packcircles)
 
-taxon <- read.delim("taxon.txt")
-metadata <- read.delim("metadata.txt")
+taxon <- read.delim("taxon.txt") %>%
+  na.omit() %>%
+  pivot_longer(
+    cols = X1:X103,
+    names_to = "SampleID",
+    values_to = "Percentage"
+  ) %>%
+  mutate(SampleID = as.integer(str_sub(SampleID, 2))) %>%
+  mutate(Percentage = Percentage/100)
+
+metadata <- read.delim("metadata.txt") %>%
+  na.omit()
+
+full_data <- metadata %>% 
+  full_join(taxon, by = "SampleID")
 ```
 
 ```{r filter for specific id}
 id = "01"
 taxon_id <- taxon %>%
-  select(id = id)
-
-#pivot longer and then combine taxon and metadata by id
-#create new data set or just select id?
-#should make ID a column in taxon, possible ?
-#three column data frame: id, bacteria, percentage, easy to merge with metadata
+  select(SampleID == id)
 ```
 
-```{r donut chart}
-donut <- ggplot(taxon_id, aes(ymax=ymax, ymin=ymin, xmax = 4, xmin=3, fill = category)) +
+```{r donut chart phylum}
+phylum_data <- data_id %>%
+  filter(str_detect(clade_name, "p_")) %>%
+  filter(!str_detect(clade_name, "c_|o_|f_|g_|s_")) %>%
+  mutate(ymax = cumsum(Percentage)) %>%
+  mutate(ymin = c(0, head(phylum_data$ymax, n=-1)))
+
+phylum_donut <- phylum_data %>%
+  ggplot(aes(ymax=ymax, ymin=ymin, xmax = 4, xmin=3, fill = clade_name,
+             text = paste(str_split(clade_name, "p_", simplify = T)[,2]))) +
   geom_rect() +
   coord_polar(theta = "y") +
   xlim(c(2,4)) +
-  theme_void()
+  theme_void() +
+  scale_fill_discrete()
   
-ggplotly(donut, tooltip = "text")
+ggplotly(phylum_donut, tooltip = "text")
 ```
 
 ```{r bar chart}
