@@ -44,3 +44,12 @@ bubble <- ggplot() +
 
 ggplotly(bubble)
 ```
+
+```{r ggtree}
+something <- system.file()
+tree <- read.tree(something)
+
+ggtree(tree, aes(color=group), layout = 'circular') + 
+  geom_tiplab(size = 1, aes(angle = angle))
+```
+
