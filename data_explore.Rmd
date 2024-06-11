@@ -14,12 +14,23 @@ library(plotly)
 library(ggtree)
 library(packcircles)
 
-# MN_puof <- readr::read_csv(
-#   "https://www.math.carleton.edu/ckelling/data_science/MN_Police_Use_of_Force.csv")
+taxon <- read.delim("taxon.txt")
+metadata <- read.delim("metadata.txt")
+```
+
+```{r filter for specific id}
+id = "01"
+taxon_id <- taxon %>%
+  select(id = id)
+
+#pivot longer and then combine taxon and metadata by id
+#create new data set or just select id?
+#should make ID a column in taxon, possible ?
+#three column data frame: id, bacteria, percentage, easy to merge with metadata
 ```
 
 ```{r donut chart}
-donut <- ggplot(data, aes(ymax=ymax, ymin=ymin, xmax = 4, xmin=3, fill = category)) +
+donut <- ggplot(taxon_id, aes(ymax=ymax, ymin=ymin, xmax = 4, xmin=3, fill = category)) +
   geom_rect() +
   coord_polar(theta = "y") +
   xlim(c(2,4)) +
@@ -28,10 +39,15 @@ donut <- ggplot(data, aes(ymax=ymax, ymin=ymin, xmax = 4, xmin=3, fill = categor
 ggplotly(donut, tooltip = "text")
 ```
 
-```{r bubble chart}
-packing <- circleProgressiveLayout(data$value, sizetype = 'area')
+```{r bar chart}
+bar <- ggplot(taxon_id) +
+  
+```
 
-data = cbind(data, packing)
+```{r bubble chart}
+packing <- circleProgressiveLayout(taxon_id, sizetype = 'area')
+
+data = cbind(taxon_id, packing)
 
 dat.gg <- circleLayoutVertices(packing, npoints = 50)
 
@@ -56,4 +72,10 @@ ggtree(tree, aes(color=group), layout = 'circular') +
 ```{r shiny table}
 
 ```
+
+```{r}
+
+```
+
+
 

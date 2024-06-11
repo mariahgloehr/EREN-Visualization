@@ -15,7 +15,8 @@ library(ggtree)
 library(packcircles)
 
 #load data
-
+taxon <- read.delim("taxon.txt")
+metadata <- read.delim("metadata.txt")
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
