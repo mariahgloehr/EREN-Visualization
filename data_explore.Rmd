@@ -112,7 +112,8 @@ bar <- ggplot(taxon_id) +
 ```{r bubble chart}
 genre_data <- data_id %>%
   filter(str_detect(clade_name, "g_")) %>%
-  filter(!str_detect(clade_name, "s_"))
+  filter(!str_detect(clade_name, "s_")) %>%
+  mutate(genre = gsub("_unclassified","", str_sub(str_extract(clade_name, "g_*"), 4)))
 
 packing <- circleProgressiveLayout(genre_data$abondance, sizetype = 'area')
 
@@ -122,9 +123,11 @@ plotcard <- circleLayoutVertices(packing)
 
 bubble <- ggplot() +
   geom_polygon(data = plotcard, aes(x, y, group = id, fill = as.factor(id)), 
-               color = "black", alpha = 0.6) +
+               color = "black", alpha = 0.6, 
+               text = paste(bubble_data$genre, "\n", bubble_data$abondance)) +
   geom_text(data = bubble_data, aes(x,y,size=abondance, 
-                                    label=paste0(str_extract(clade_name, "g_(.*)")))) +
+                                    label= ifelse(abondance < 0.5, "", paste0(genre)),
+                                    text = paste(genre, "\n", str_sub(abondance, 1, 4), "%"))) +
   scale_size_continuous(range = c(1,4)) +
   theme_void() +
   theme(legend.position = "none") +
