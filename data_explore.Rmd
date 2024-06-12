@@ -85,16 +85,16 @@ family_donut <- family_data %>%
   scale_fill_discrete()
 
 ## genre donut chart (top 15)
-genre_data <- data_id %>%
+genre_data_donut <- data_id %>%
   filter(str_detect(clade_name, "g_")) %>%
   filter(!str_detect(clade_name, "s_")) %>%
   group_by(clade_name = ifelse(row_number() < 15, clade_name = "Other")) %>%
   summarise(across(c(abondance, Percentage), sum)) %>%
   mutate(ymax = cumsum(Percentage)) 
-genre_data <- genre_data %>%
-  mutate(ymin = c(0, head(genre_data$ymax, n=-1)))
+genre_data_donut <- genre_data_donut %>%
+  mutate(ymin = c(0, head(genre_data_donut$ymax, n=-1)))
 
-genre_donut <- genre_data %>%
+genre_donut <- genre_data_donut %>%
   ggplot(aes(ymax=ymax, ymin=ymin, xmax = 4, xmin=3, fill = clade_name,
              text = paste(str_split(clade_name, "p_", simplify = T)[,2]))) +
   geom_rect() +
@@ -110,18 +110,27 @@ bar <- ggplot(taxon_id) +
 ```
 
 ```{r bubble chart}
-packing <- circleProgressiveLayout(taxon_id, sizetype = 'area')
+genre_data <- data_id %>%
+  filter(str_detect(clade_name, "g_")) %>%
+  filter(!str_detect(clade_name, "s_"))
 
-data = cbind(taxon_id, packing)
+packing <- circleProgressiveLayout(genre_data$abondance, sizetype = 'area')
 
-dat.gg <- circleLayoutVertices(packing, npoints = 50)
+bubble_data = cbind(genre_data, packing)
+
+plotcard <- circleLayoutVertices(packing)
 
 bubble <- ggplot() +
-  geom_polygon(data = dat.gg, aes(x, y, group = id, fill = as.factor(id)), color = "black", alpha = 0.6) +
+  geom_polygon(data = plotcard, aes(x, y, group = id, fill = as.factor(id)), 
+               color = "black", alpha = 0.6) +
+  geom_text(data = bubble_data, aes(x,y,size=abondance, 
+                                    label=paste0(str_extract(clade_name, "g_(.*)")))) +
   scale_size_continuous(range = c(1,4)) +
   theme_void() +
   theme(legend.position = "none") +
   coord_equal()
+
+bubble 
 
 ggplotly(bubble)
 ```
