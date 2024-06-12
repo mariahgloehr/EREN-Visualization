@@ -37,6 +37,7 @@ taxon_id <- taxon %>%
 ```
 
 ```{r donut chart phylum}
+## phylum donut chart
 phylum_data <- data_id %>%
   filter(str_detect(clade_name, "p_")) %>%
   filter(!str_detect(clade_name, "c_|o_|f_|g_|s_")) %>%
@@ -54,7 +55,53 @@ phylum_donut <- phylum_data %>%
   theme_void() +
   scale_fill_discrete()
   
-ggplotly(phylum_donut, tooltip = "text")
+# ggplotly(phylum_donut, tooltip = "text")
+# 
+# fig <- phylum_data %>% plot_ly(labls = ~clade_name, values = ~abondance)
+# fig <- fig %>% add_pie(hole = 0.6)
+# fig <- fig(layout(title = "Donut", showlegend = F,
+#                   xaxis = list(showgrid = F, zeroline = F, showticklabels = F),
+#                   yaxis = list(showgrid = F, zeroline = F, showticklabels = F)))
+# 
+# fig
+
+## family donut chart (top 10)
+family_data <- data_id %>%
+  filter(str_detect(clade_name, "f_")) %>%
+  filter(!str_detect(clade_name, "g_|s_")) %>%
+  group_by(clade_name = ifelse(row_number() < 10, clade_name = "Other")) %>%
+  summarise(across(c(abondance, Percentage), sum)) %>%
+  mutate(ymax = cumsum(Percentage)) 
+family_data <- family_data %>%
+  mutate(ymin = c(0, head(family_data$ymax, n=-1)))
+
+family_donut <- family_data %>%
+  ggplot(aes(ymax=ymax, ymin=ymin, xmax = 4, xmin=3, fill = clade_name,
+             text = paste(str_split(clade_name, "p_", simplify = T)[,2]))) +
+  geom_rect() +
+  coord_polar(theta = "y") +
+  xlim(c(2,4)) +
+  theme_void() +
+  scale_fill_discrete()
+
+## genre donut chart (top 15)
+genre_data <- data_id %>%
+  filter(str_detect(clade_name, "g_")) %>%
+  filter(!str_detect(clade_name, "s_")) %>%
+  group_by(clade_name = ifelse(row_number() < 15, clade_name = "Other")) %>%
+  summarise(across(c(abondance, Percentage), sum)) %>%
+  mutate(ymax = cumsum(Percentage)) 
+genre_data <- genre_data %>%
+  mutate(ymin = c(0, head(genre_data$ymax, n=-1)))
+
+genre_donut <- genre_data %>%
+  ggplot(aes(ymax=ymax, ymin=ymin, xmax = 4, xmin=3, fill = clade_name,
+             text = paste(str_split(clade_name, "p_", simplify = T)[,2]))) +
+  geom_rect() +
+  coord_polar(theta = "y") +
+  xlim(c(2,4)) +
+  theme_void() +
+  scale_fill_discrete()
 ```
 
 ```{r bar chart}
