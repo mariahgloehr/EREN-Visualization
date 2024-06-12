@@ -28,6 +28,11 @@ metadata <- read.delim("metadata.txt") %>%
 
 full_data <- metadata %>% 
   full_join(taxon, by = "SampleID")
+
+phylum_data_full <- full_data %>%
+  filter(str_detect(clade_name, "p_")) %>%
+  filter(!str_detect(clade_name, "c_|o_|f_|g_|s_|_unclassified")) %>% #add to rest
+  mutate(Phylum = str_sub(str_extract(clade_name, "p_.*"), 4))
 ```
 
 ```{r filter for specific id}
@@ -93,8 +98,70 @@ genre_donut <- genre_data_donut %>%
 ```
 
 ```{r bar chart}
-bar <- ggplot(taxon_id) +
+# phylum_data_bar <- phylum_data %>%
+#   mutate(ymax = cumsum(Percentage))
+# phylum_data_bar <- phylum_data_bar %>%
+#   mutate(ymin = c(0, head(phylum_data_bar$ymax, n = -1)))
+# 
+# bar_nutrinaute <- phylum_data_bar %>%
+#   ggplot(aes(ymax = ymax, ymin = ymin, xmax = 1, xmin = 0,
+#              fill = Phylum, 
+#              text = paste(Phylum))) +
+#   geom_rect() +
+#   scale_fill_discrete()
+
+bar_nutrinaute <- phylum_data %>%
+  ggplot(aes(fill = Phylum, y = Percentage, x = SampleID), 
+         text = paste(Phylum, "\n", str_sub(abondance, 1, 4), "%")) +
+  geom_bar(position = "fill", stat = "identity")
+ggplotly(bar_nutrinaute, tooltip = "text")
+
+bar_pop <- phylum_data_full %>%
+  group_by(Phylum) %>%
+  summarise(across(c(abondance, Percentage), sum)) %>%
+  mutate(abondance = abondance/sum(abondance)*100) %>%
+  mutate(Percentage = Percentage/sum(Percentage)) %>%
+  mutate(dummy = "Pop") %>%
+  ggplot(aes(fill = Phylum, y = Percentage, x = SampleID), 
+         text = paste(Phylum, "\n", str_sub(abondance, 1, 4), "%")) +
+  geom_bar(position = "fill", stat = "identity")
+ggplotly(bar_pop, tooltip = "text")
   
+bar_sexe <- phylum_data_full %>%
+  filter(Gender == 1) %>%
+  group_by(Phylum) %>%
+  summarise(across(c(abondance, Percentage), sum)) %>%
+  mutate(abondance = abondance/sum(abondance)*100) %>%
+  mutate(Percentage = Percentage/sum(Percentage)) %>%
+  mutate(dummy = "Gender") %>%
+  ggplot(aes(fill = Phylum, y = Percentage, x = SampleID), 
+         text = paste(Phylum, "\n", str_sub(abondance, 1, 4), "%")) +
+  geom_bar(position = "fill", stat = "identity")
+ggplotly(bar_sexe, tooltip = "text")
+
+bar_age <- phylum_data_full %>%
+  filter(Age == "50-59") %>%
+  group_by(Phylum) %>%
+  summarise(across(c(abondance, Percentage), sum)) %>%
+  mutate(abondance = abondance/sum(abondance)*100) %>%
+  mutate(Percentage = Percentage/sum(Percentage)) %>%
+  mutate(dummy = "Age") %>%
+  ggplot(aes(fill = Phylum, y = Percentage, x = SampleID), 
+         text = paste(Phylum, "\n", str_sub(abondance, 1, 4), "%")) +
+  geom_bar(position = "fill", stat = "identity")
+ggplotly(bar_age, tooltip = "text")
+
+bar_region <- phylum_data_full %>%
+  filter(Region == "A") %>%
+  group_by(Phylum) %>%
+  summarise(across(c(abondance, Percentage), sum)) %>%
+  mutate(abondance = abondance/sum(abondance)*100) %>%
+  mutate(Percentage = Percentage/sum(Percentage)) %>%
+  mutate(dummy = "Region") %>%
+  ggplot(aes(fill = Phylum, y = Percentage, x = SampleID), 
+         text = paste(Phylum, "\n", str_sub(abondance, 1, 4), "%")) +
+  geom_bar(position = "fill", stat = "identity")
+ggplotly(bar_pop, tooltip = "text")
 ```
 
 ```{r bubble chart}
@@ -144,64 +211,64 @@ ggtree(tree, aes(color=group), layout = 'circular') +
 
 ```{r old code}
 ## phylum donut chart
-phylum_data <- data_id %>%
-  filter(str_detect(clade_name, "p_")) %>%
-  filter(!str_detect(clade_name, "c_|o_|f_|g_|s_")) %>%
-  mutate(Phylum = gsub("_unclassified", "", str_sub(str_extract(clade_name, "p_*"), 4))) %>%
-  mutate(ymax = cumsum(Percentage)) 
-phylum_data <- phylum_data %>%
-  mutate(ymin = c(0, head(phylum_data$ymax, n=-1)))
-
-phylum_donut <- phylum_data %>%
-  ggplot(aes(ymax=ymax, ymin=ymin, xmax = 4, xmin=3, fill = Phylum,
-             text = Phylum)) +
-  geom_rect() +
-  coord_polar(theta = "y") +
-  xlim(c(2,4)) +
-  theme_void() +
-  scale_fill_discrete()
-
-## family donut chart (top 10)
-family_data <- data_id %>%
-  filter(str_detect(clade_name, "f_")) %>%
-  filter(!str_detect(clade_name, "g_|s_")) %>%
-  group_by(clade_name = ifelse(row_number() < 10, clade_name = "Autres")) %>%
-  summarise(across(c(abondance, Percentage), sum)) %>%
-  mutate(Family = ifelse(clade_name == "Autres", "Autres", 
-                         gsub("_unclassified", "", str_sub(str_extract(clade_name, "f_*"), 4)))) %>%
-  mutate(ymax = cumsum(Percentage)) 
-family_data <- family_data %>%
-  mutate(ymin = c(0, head(family_data$ymax, n=-1)))
-
-family_donut <- family_data %>%
-  ggplot(aes(ymax=ymax, ymin=ymin, xmax = 4, xmin=3, fill = Family,
-             text = paste(str_split(Family, "p_", simplify = T)[,2]))) +
-  geom_rect() +
-  coord_polar(theta = "y") +
-  xlim(c(2,4)) +
-  theme_void() +
-  scale_fill_discrete()
-
-## genre donut chart (top 15)
-genre_data_donut <- data_id %>%
-  filter(str_detect(clade_name, "g_")) %>%
-  filter(!str_detect(clade_name, "s_")) %>%
-  group_by(clade_name = ifelse(row_number() < 15, clade_name = "Autres")) %>%
-  mutate(Genre = ifelse(clade_name == "Autres", "Autres", 
-                         gsub("_unclassified", "", str_sub(str_extract(clade_name, "g_*"), 4)))) %>%
-  summarise(across(c(abondance, Percentage), sum)) %>%
-  mutate(ymax = cumsum(Percentage)) 
-genre_data_donut <- genre_data_donut %>%
-  mutate(ymin = c(0, head(genre_data_donut$ymax, n=-1)))
-
-genre_donut <- genre_data_donut %>%
-  ggplot(aes(ymax=ymax, ymin=ymin, xmax = 4, xmin=3, fill = Genre,
-             text = paste(str_split(Genre, "p_", simplify = T)[,2]))) +
-  geom_rect() +
-  coord_polar(theta = "y") +
-  xlim(c(2,4)) +
-  theme_void() +
-  scale_fill_discrete()
+# phylum_data <- data_id %>%
+#   filter(str_detect(clade_name, "p_")) %>%
+#   filter(!str_detect(clade_name, "c_|o_|f_|g_|s_")) %>%
+#   mutate(Phylum = gsub("_unclassified", "", str_sub(str_extract(clade_name, "p_*"), 4))) %>%
+#   mutate(ymax = cumsum(Percentage)) 
+# phylum_data <- phylum_data %>%
+#   mutate(ymin = c(0, head(phylum_data$ymax, n=-1)))
+# 
+# phylum_donut <- phylum_data %>%
+#   ggplot(aes(ymax=ymax, ymin=ymin, xmax = 4, xmin=3, fill = Phylum,
+#              text = Phylum)) +
+#   geom_rect() +
+#   coord_polar(theta = "y") +
+#   xlim(c(2,4)) +
+#   theme_void() +
+#   scale_fill_discrete()
+# 
+# ## family donut chart (top 10)
+# family_data <- data_id %>%
+#   filter(str_detect(clade_name, "f_")) %>%
+#   filter(!str_detect(clade_name, "g_|s_")) %>%
+#   group_by(clade_name = ifelse(row_number() < 10, clade_name = "Autres")) %>%
+#   summarise(across(c(abondance, Percentage), sum)) %>%
+#   mutate(Family = ifelse(clade_name == "Autres", "Autres", 
+#                          gsub("_unclassified", "", str_sub(str_extract(clade_name, "f_*"), 4)))) %>%
+#   mutate(ymax = cumsum(Percentage)) 
+# family_data <- family_data %>%
+#   mutate(ymin = c(0, head(family_data$ymax, n=-1)))
+# 
+# family_donut <- family_data %>%
+#   ggplot(aes(ymax=ymax, ymin=ymin, xmax = 4, xmin=3, fill = Family,
+#              text = paste(str_split(Family, "p_", simplify = T)[,2]))) +
+#   geom_rect() +
+#   coord_polar(theta = "y") +
+#   xlim(c(2,4)) +
+#   theme_void() +
+#   scale_fill_discrete()
+# 
+# ## genre donut chart (top 15)
+# genre_data_donut <- data_id %>%
+#   filter(str_detect(clade_name, "g_")) %>%
+#   filter(!str_detect(clade_name, "s_")) %>%
+#   group_by(clade_name = ifelse(row_number() < 15, clade_name = "Autres")) %>%
+#   mutate(Genre = ifelse(clade_name == "Autres", "Autres", 
+#                          gsub("_unclassified", "", str_sub(str_extract(clade_name, "g_*"), 4)))) %>%
+#   summarise(across(c(abondance, Percentage), sum)) %>%
+#   mutate(ymax = cumsum(Percentage)) 
+# genre_data_donut <- genre_data_donut %>%
+#   mutate(ymin = c(0, head(genre_data_donut$ymax, n=-1)))
+# 
+# genre_donut <- genre_data_donut %>%
+#   ggplot(aes(ymax=ymax, ymin=ymin, xmax = 4, xmin=3, fill = Genre,
+#              text = paste(str_split(Genre, "p_", simplify = T)[,2]))) +
+#   geom_rect() +
+#   coord_polar(theta = "y") +
+#   xlim(c(2,4)) +
+#   theme_void() +
+#   scale_fill_discrete()
 ```
 
 
