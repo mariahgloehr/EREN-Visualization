@@ -51,7 +51,7 @@ phylum_data <- data_id %>%
 phylum_donut <- phylum_data %>%
   plot_ly(labels = ~Phylum, values = ~Percentage,
           textposition = "inside",
-          textinfo = ifelse(Percentage < 1, "", "label"),
+          # textinfo = ifelse(Percentage < 1, "", "label"),
           hoverinfo = "label+percent") %>%
   add_pie(hole = 0.6) %>%
   layout(title = "Donut Phylum Chart", showlegend = F,
@@ -66,12 +66,12 @@ family_data <- data_id %>%
   group_by(clade_name = ifelse(row_number() < 10, clade_name = "Autres")) %>%
   summarise(across(c(abondance, Percentage), sum)) %>%
   mutate(Family = ifelse(clade_name == "Autres", "Autres", 
-                         gsub("_unclassified", "", str_sub(str_extract(clade_name, "f_*"), 4)))) 
+                         str_sub(str_extract(clade_name, "f_*"), 4))) 
 
 family_donut <- family_data %>%
   plot_ly(labels = ~Family, values = ~Percentage,
           textposition = "inside",
-          textinfo = ifelse(Percentage < 1, "", "label"),
+          # textinfo = ifelse(Percentage < 1, "", "label"),
           hoverinfo = "label+percent") %>%
   add_pie(hole = 0.6) %>%
   layout(title = "Donut Family Chart", showlegend = F,
@@ -84,12 +84,12 @@ genre_data_donut <- data_id %>%
   filter(!str_detect(clade_name, "s_")) %>%
   group_by(clade_name = ifelse(row_number() < 20, clade_name = "Autres")) %>%
   mutate(Genre = ifelse(clade_name == "Autres", "Autres", 
-                         gsub("_unclassified", "", str_sub(str_extract(clade_name, "g_*"), 4)))) 
+                         str_sub(str_extract(clade_name, "g_*"), 4))) 
 
 genre_donut <- genre_data_donut %>%
   plot_ly(labels = ~Genre, values = ~Percentage,
           textposition = "inside",
-          textinfo = ifelse(Percentage < 1, "", "label"),
+          # textinfo = ifelse(Percentage < 1, "", "label"),
           hoverinfo = "label+percent") %>%
   add_pie(hole = 0.6) %>%
   layout(title = "Donut Genre Chart", showlegend = F,
