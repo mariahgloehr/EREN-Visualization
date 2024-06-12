@@ -41,14 +41,14 @@ taxon_id <- taxon %>%
 phylum_data <- data_id %>%
   filter(str_detect(clade_name, "p_")) %>%
   filter(!str_detect(clade_name, "c_|o_|f_|g_|s_")) %>%
+  mutate(Phylum = gsub("_unclassified", "", str_sub(str_extract(clade_name, "p_*"), 4))) %>%
   mutate(ymax = cumsum(Percentage)) 
-
 phylum_data <- phylum_data %>%
   mutate(ymin = c(0, head(phylum_data$ymax, n=-1)))
 
 phylum_donut <- phylum_data %>%
-  ggplot(aes(ymax=ymax, ymin=ymin, xmax = 4, xmin=3, fill = clade_name,
-             text = paste(str_split(clade_name, "p_", simplify = T)[,2]))) +
+  ggplot(aes(ymax=ymax, ymin=ymin, xmax = 4, xmin=3, fill = Phylum,
+             text = Phylum)) +
   geom_rect() +
   coord_polar(theta = "y") +
   xlim(c(2,4)) +
@@ -69,15 +69,17 @@ phylum_donut <- phylum_data %>%
 family_data <- data_id %>%
   filter(str_detect(clade_name, "f_")) %>%
   filter(!str_detect(clade_name, "g_|s_")) %>%
-  group_by(clade_name = ifelse(row_number() < 10, clade_name = "Other")) %>%
+  group_by(clade_name = ifelse(row_number() < 10, clade_name = "Autres")) %>%
   summarise(across(c(abondance, Percentage), sum)) %>%
+  mutate(Family = ifelse(clade_name == "Autres", "Autres", 
+                         gsub("_unclassified", "", str_sub(str_extract(clade_name, "f_*"), 4)))) %>%
   mutate(ymax = cumsum(Percentage)) 
 family_data <- family_data %>%
   mutate(ymin = c(0, head(family_data$ymax, n=-1)))
 
 family_donut <- family_data %>%
-  ggplot(aes(ymax=ymax, ymin=ymin, xmax = 4, xmin=3, fill = clade_name,
-             text = paste(str_split(clade_name, "p_", simplify = T)[,2]))) +
+  ggplot(aes(ymax=ymax, ymin=ymin, xmax = 4, xmin=3, fill = Family,
+             text = paste(str_split(Family, "p_", simplify = T)[,2]))) +
   geom_rect() +
   coord_polar(theta = "y") +
   xlim(c(2,4)) +
@@ -88,15 +90,17 @@ family_donut <- family_data %>%
 genre_data_donut <- data_id %>%
   filter(str_detect(clade_name, "g_")) %>%
   filter(!str_detect(clade_name, "s_")) %>%
-  group_by(clade_name = ifelse(row_number() < 15, clade_name = "Other")) %>%
+  group_by(clade_name = ifelse(row_number() < 15, clade_name = "Autres")) %>%
+  mutate(Genre = ifelse(clade_name == "Autres", "Autres", 
+                         gsub("_unclassified", "", str_sub(str_extract(clade_name, "g_*"), 4)))) %>%
   summarise(across(c(abondance, Percentage), sum)) %>%
   mutate(ymax = cumsum(Percentage)) 
 genre_data_donut <- genre_data_donut %>%
   mutate(ymin = c(0, head(genre_data_donut$ymax, n=-1)))
 
 genre_donut <- genre_data_donut %>%
-  ggplot(aes(ymax=ymax, ymin=ymin, xmax = 4, xmin=3, fill = clade_name,
-             text = paste(str_split(clade_name, "p_", simplify = T)[,2]))) +
+  ggplot(aes(ymax=ymax, ymin=ymin, xmax = 4, xmin=3, fill = Genre,
+             text = paste(str_split(Genre, "p_", simplify = T)[,2]))) +
   geom_rect() +
   coord_polar(theta = "y") +
   xlim(c(2,4)) +
