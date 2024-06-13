@@ -15,8 +15,23 @@ library(ggtree)
 library(packcircles)
 
 #load data
-taxon <- read.delim("taxon.txt")
-metadata <- read.delim("metadata.txt")
+taxon <- read.delim("taxon.txt") %>%
+  na.omit() %>%
+  pivot_longer(
+    cols = X1:X103,
+    names_to = "SampleID",
+    values_to = "abondance"
+  ) %>%
+  mutate(SampleID = as.integer(str_sub(SampleID, 2))) %>%
+  mutate(Percentage = abondance/100)
+
+metadata <- read.delim("metadata.txt") %>%
+  na.omit()
+
+full_data <- metadata %>% 
+  full_join(taxon, by = "SampleID") %>%
+  group_by(SampleID) %>%
+  arrange(desc(abondance), .by_group = T)
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(

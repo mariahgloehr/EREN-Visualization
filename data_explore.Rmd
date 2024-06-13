@@ -174,7 +174,7 @@ all_bars <- phylum_data_bar %>%
   ggplot(aes(fill = Phylum, y = abondance, x = Group,
              text = paste(Phylum, "\n", str_sub(abondance, 1, 4), "%"))) +
   geom_col(position = "fill", stat = "identity") +
-  scale_color_viridis_b(discrete = T)
+  scale_color_viridis(option = "plasma", discrete = T)
 ggplotly(all_bars, tooltip = "text")
 # reorder bars and change axis labels
 ```
@@ -192,8 +192,9 @@ plotcard <- circleLayoutVertices(packing, npoints = 50)
 plotcard$abondance <- rep(bubble_data$abondance, each = 51)
 
 bubble <- ggplot() +
-  geom_polygon(data = plotcard, aes(x, y, group = id, fill = abondance), 
-               color = "black", alpha = 0.6) +
+  geom_polygon(data = plotcard, aes(x, y, group = id, fill = abondance,
+                                    text = paste(genre, "\n", str_sub(abondance, 1, 4), "%")), 
+               color = "black", alpha = 0.7) +
   scale_fill_viridis() +
   geom_text(data = bubble_data, aes(x,y,size=abondance, 
                                     label= ifelse(abondance < 0.5, "", paste0(genre)),
