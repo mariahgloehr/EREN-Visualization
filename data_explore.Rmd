@@ -173,7 +173,8 @@ phylum_data_bar <- rbind(phylum_data_ID, phylum_data_pop,
 all_bars <- phylum_data_bar %>%
   ggplot(aes(fill = Phylum, y = abondance, x = Group,
              text = paste(Phylum, "\n", str_sub(abondance, 1, 4), "%"))) +
-  geom_col(position = "fill", stat = "identity")
+  geom_col(position = "fill", stat = "identity") +
+  scale_color_viridis_b(discrete = T)
 ggplotly(all_bars, tooltip = "text")
 # reorder bars and change axis labels
 ```
