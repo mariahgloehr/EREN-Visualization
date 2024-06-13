@@ -252,15 +252,15 @@ genre_data <- data_id %>%
   mutate(genre = gsub("_unclassified","", str_sub(str_extract(clade_name, "g_*"), 4)))
 
 packing <- circleProgressiveLayout(genre_data$abondance, sizetype = 'area')
-
 bubble_data = cbind(genre_data, packing)
+plotcard <- circleLayoutVertices(packing, npoints = 50)
 
-plotcard <- circleLayoutVertices(packing)
+plotcard$abondance <- rep(bubble_data$abondance, each = 51)
 
 bubble <- ggplot() +
-  geom_polygon(data = plotcard, aes(x, y, group = id, fill = as.factor(id)), 
-               color = "black", alpha = 0.6, 
-               text = paste(bubble_data$genre, "\n", bubble_data$abondance)) +
+  geom_polygon(data = plotcard, aes(x, y, group = id, fill = abondance), 
+               color = "black", alpha = 0.6) +
+  scale_fill_viridis() +
   geom_text(data = bubble_data, aes(x,y,size=abondance, 
                                     label= ifelse(abondance < 0.5, "", paste0(genre)),
                                     text = paste(genre, "\n", str_sub(abondance, 1, 4), "%"))) +
@@ -285,10 +285,6 @@ ggtree(tree, aes(color=group), layout = 'circular') +
 ```{r shiny table}
 
 ```
-
-
-
-
 
 ```{r old code}
 ## phylum donut chart
@@ -351,6 +347,3 @@ ggtree(tree, aes(color=group), layout = 'circular') +
 #   theme_void() +
 #   scale_fill_discrete()
 ```
-
-
-
