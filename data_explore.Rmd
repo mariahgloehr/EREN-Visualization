@@ -97,6 +97,87 @@ genre_donut <- genre_data_donut %>%
          yxis = list(showgrid = F, zeroline = F, showticklables = F))
 ```
 
+```{r bar chart data explore}
+#function??
+phylum_data_sex <- phylum_data_full %>%
+  filter(Gender == 1) %>%
+  group_by(Phylum) %>%
+  summarise(across(abondance, sum)) %>%
+  mutate(abondance = (abondance/sum(abondance))*100)
+ 
+phylum_data_sex <- phylum_data_full %>%
+  filter(Gender == 1) %>%
+  select(SampleID, Gender, Age_class, Region, Phylum) %>%
+  full_join(phylum_data_sex, by = "Phylum")
+
+phylum_data_age <- phylum_data_full %>%
+  filter(Age_class == "50-59") %>%
+  group_by(Phylum) %>%
+  summarise(across(abondance, sum)) %>%
+  mutate(abondance = (abondance/sum(abondance))*100)
+ 
+phylum_data_age <- phylum_data_full %>%
+  filter(Age_class == "50-59") %>%
+  select(SampleID, Gender, Age_class, Region, Phylum) %>%
+  full_join(phylum_data_age, by = "Phylum")
+
+phylum_data_region <- phylum_data_full %>%
+  filter(Region == "A") %>%
+  group_by(Phylum) %>%
+  summarise(across(abondance, sum)) %>%
+  mutate(abondance = (abondance/sum(abondance))*100)
+ 
+phylum_data_region <- phylum_data_full %>%
+  filter(Region == "A") %>%
+  select(SampleID, Gender, Age_class, Region, Phylum) %>%
+  full_join(phylum_data_region, by = "Phylum")
+
+### retry
+phylum_data_sex <- phylum_data_full %>%
+  filter(Gender == 1) %>%
+  group_by(Phylum) %>%
+  summarise(across(abondance, sum)) %>%
+  mutate(abondance = (abondance/sum(abondance))*100) %>%
+  mutate(Group = "Gender")
+
+phylum_data_age <- phylum_data_full %>%
+  filter(Age_class == "50-59") %>%
+  group_by(Phylum) %>%
+  summarise(across(abondance, sum)) %>%
+  mutate(abondance = (abondance/sum(abondance))*100) %>%
+  mutate(Group = "Age")
+
+phylum_data_region <- phylum_data_full %>%
+  filter(Region == "A") %>%
+  group_by(Phylum) %>%
+  summarise(across(abondance, sum)) %>%
+  mutate(abondance = (abondance/sum(abondance))*100) %>%
+  mutate(Group = "Region")
+
+phylum_data_pop <- phylum_data_full %>%
+  group_by(Phylum) %>%
+  summarise(across(abondance, sum)) %>%
+  mutate(abondance = (abondance/sum(abondance))*100) %>%
+  mutate(Group = "Total Population")
+
+phylum_data_ID <- phylum_data_full %>%
+  filter(SampleID == 1) %>%
+  group_by(Phylum) %>%
+  summarise(across(abondance, sum)) %>%
+  mutate(abondance = (abondance/sum(abondance))*100) %>%
+  mutate(Group = "ID")
+
+phylum_data_bar <- rbind(phylum_data_ID, phylum_data_pop,
+                         phylum_data_sex, phylum_data_age, phylum_data_region)
+
+all_bars <- phylum_data_bar %>%
+  ggplot(aes(fill = Phylum, y = abondance, x = Group,
+             text = paste(Phylum, "\n", str_sub(abondance, 1, 4), "%"))) +
+  geom_col(position = "fill", stat = "identity")
+ggplotly(all_bars, tooltip = "text")
+# reorder bars and change axis labels
+```
+
 ```{r bar chart}
 # phylum_data_bar <- phylum_data %>%
 #   mutate(ymax = cumsum(Percentage))
