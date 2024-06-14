@@ -63,21 +63,15 @@ genre_data <- full_data %>%
 
 # Define UI  
 ui <- fluidPage(
-  fluidRow(
-    column(4, dataTableOutput("phylum_table")),
-    column(4, dataTableOutput("family_table")),
-    column(4, dataTableOutput("genre_table"))
+  tabsetPanel(
+    tabPanel("Phylum",
+             dataTableOutput("phylum_table")),
+    tabPanel("Family",
+             dataTableOutput("family_table")),
+    tabPanel("Genre",
+             dataTableOutput("genre_table"))
   )
 )
-
-#   tabsetPanel(
-#   tabPanel("Phylum",
-#            dataTableOutput("phylum_table")),
-#   tabPanel("Family",
-#            dataTableOutput("family_table")),
-#   tabPanel("Genre",
-#            dataTableOutput("genre_table"))
-# )
 
 #   fluidPage(
 #   fluidRow(
