@@ -34,23 +34,32 @@ id = 1
 
 phylum_data <- full_data %>%
   filter(SampleID == id) %>%
-  filter(str_detect(clade_name, "p_")) %>%
-  filter(!str_detect(clade_name, "c_|o_|f_|g_|s_|_unclassified")) %>%
-  mutate(Phylum = str_sub(str_extract(clade_name, "p_.*"), 4)) %>%
+  filter(str_detect(clade_name, "p_|UNCLASSIFIED|_unclassified")) %>%
+  filter(!str_detect(clade_name, "c_|o_|f_|g_|s_")) %>%
+  mutate(Phylum = ifelse(clade_name == "UNCLASSIFIED"|str_detect(clade_name, "_unclassified"),
+                         "UNCLASSIFIED", str_sub(str_extract(clade_name, "p_.*"), 4))) %>%
+  group_by(Phylum = ifelse(Phylum == "UNCLASSIFIED", "UNCLASSIFIED", Phylum)) %>%
+  summarise(across(c(Abondance, Percentage), sum)) %>%
   ungroup()
 
 family_data <- full_data %>%
   filter(SampleID == id) %>%
-  filter(str_detect(clade_name, "f_")) %>%
-  filter(!str_detect(clade_name, "g_|s_|_unclassified")) %>%
-  mutate(Family = str_sub(str_extract(clade_name, "f_.*"), 4)) %>%
+  filter(str_detect(clade_name, "f_|UNCLASSIFIED|_unclassified")) %>%
+  filter(!str_detect(clade_name, "g_|s_")) %>%
+  mutate(Family = ifelse(clade_name == "UNCLASSIFIED"|str_detect(clade_name, "_unclassified"),
+                         "UNCLASSIFIED", str_sub(str_extract(clade_name, "f_.*"), 4))) %>%
+  group_by(Family = ifelse(Family == "UNCLASSIFIED", "UNCLASSIFIED", Family)) %>%
+  summarise(across(c(Abondance, Percentage), sum)) %>%
   ungroup()
 
 genre_data <- full_data %>%
   filter(SampleID == id) %>%
-  filter(str_detect(clade_name, "g_")) %>%
-  filter(!str_detect(clade_name, "s_|_unclassified")) %>%
-  mutate(Genre = str_sub(str_extract(clade_name, "g_.*"), 4)) %>%
+  filter(str_detect(clade_name, "g_|UNCLASSIFIED|_unclassified")) %>%
+  filter(!str_detect(clade_name, "s_")) %>%
+  mutate(Genre = ifelse(clade_name == "UNCLASSIFIED"|str_detect(clade_name, "_unclassified"),
+                        "UNCLASSIFIED", str_sub(str_extract(clade_name, "g_.*"), 4))) %>%
+  group_by(Genre = ifelse(Genre == "UNCLASSIFIED", "UNCLASSIFIED", Genre)) %>%
+  summarise(across(c(Abondance, Percentage), sum)) %>%
   ungroup()
 
 
@@ -73,6 +82,15 @@ ui <- fluidPage(
   )
 )
 
+#   tabsetPanel(
+#   tabPanel("Phylum",
+#            dataTableOutput("phylum_table")),
+#   tabPanel("Family",
+#            dataTableOutput("family_table")),
+#   tabPanel("Genre",
+#            dataTableOutput("genre_table"))
+# )
+
 #   fluidPage(
 #   fluidRow(
 #     column(4, dataTableOutput("phylum_table")),
@@ -87,14 +105,17 @@ server <- function(input, output) {
   
   output$phylum_table <- phylum_data %>%
     select(Phylum, Abondance) %>%
+    filter(Abondance != 0) %>%
     renderDataTable()
   
   output$family_table <- family_data %>%
     select(Family, Abondance) %>%
+    filter(Abondance != 0) %>%
     renderDataTable()
   
   output$genre_table <- genre_data %>%
     select(Genre, Abondance) %>%
+    filter(Abondance != 0) %>%
     renderDataTable()
 }
 
