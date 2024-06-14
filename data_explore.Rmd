@@ -44,7 +44,7 @@ taxon_id <- taxon %>%
   filter(SampleID == id)
 ```
 
-```{r donut chart phylum}
+```{r donut charts}
 ## phylum donut chart
 phylum_data <- data_id %>%
   filter(str_detect(clade_name, "p_")) %>%
@@ -129,7 +129,11 @@ bar_data <- function(id) {
       mutate(Group = data_id[[group]][[1]]) %>%
       rbind(phylum_data_bar)
   }
-  return(phylum_data_bar)
+  return(phylum_data_bar %>%
+           mutate(Group = fct_relevel(
+             Group, c("ID", "Total Population", 
+                      data_id[["Gender"]][[1]], data_id[["Age_class"]][[1]], data_id[["Region"]][[1]])
+           )))
 }
 
 all_bars <- bar_data(1) %>%
