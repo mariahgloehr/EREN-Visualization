@@ -101,44 +101,44 @@ genre_donut <- genre_data_donut %>%
 ```
 
 ```{r bar chart data explore}
-bar_data <- function(group, id){
+bar_data <- function(id) {
   data_id <- phylum_data_full %>%
-    filter(SqmpleID == as.character(id))
-  
-  return(phylum_data_full %>%
-           filter_at(group, ~ . == data_id[[group]][[1]]) %>%
-           group_by(Phylum) %>%
-           summarise(across(Abundance, sum)) %>%
-           mutate(Abundance/sum(Abundance)*100) %>%
-           mutate(Group = data_id[[group]][[1]])
-  )
+    filter(SampleID == as.character(id))
+ 
+  phylum_data_pop <- phylum_data_full %>%
+    group_by(Phylum) %>%
+    summarise(across(Abundance, sum)) %>%
+    mutate(Abundance = (Abundance/sum(Abundance))*100) %>%
+    mutate(Group = "Total Population")
+ 
+  phylum_data_ID <- phylum_data_full %>%
+    filter(SampleID == as.character(id)) %>%
+    group_by(Phylum) %>%
+    summarise(across(Abundance, sum)) %>%
+    mutate(Abundance = (Abundance/sum(Abundance))*100) %>%
+    mutate(Group = "ID")
+ 
+  phylum_data_bar <- rbind(phylum_data_ID, phylum_data_pop)
+ 
+  for (group in c("Gender", "Age_class", "Region")) {
+    phylum_data_bar <- phylum_data_full %>%
+      filter_at(group, ~ . == data_id[[group]][[1]]) %>%
+      group_by(Phylum) %>%
+      summarise(across(Abundance, sum)) %>%
+      mutate(Abundance = (Abundance/sum(Abundance))*100) %>%
+      mutate(Group = data_id[[group]][[1]]) %>%
+      rbind(phylum_data_bar)
+  }
+  return(phylum_data_bar)
 }
 
-phylum_data_pop <- phylum_data_full %>%
-  group_by(Phylum) %>%
-  summarise(across(Abundance, sum)) %>%
-  mutate(Abundance = (Abundance/sum(Abundance))*100) %>%
-  mutate(Group = "Total Population")
-
-#fix##
-phylum_data_ID <- phylum_data_full %>%
-  filter(SampleID == 1) %>%
-  group_by(Phylum) %>%
-  summarise(across(Abundance, sum)) %>%
-  mutate(Abundance = (Abundance/sum(Abundance))*100) %>%
-  mutate(Group = "ID")
-
-phylum_data_bar <- rbind(phylum_data_ID, phylum_data_pop,
-                         bar_data("Gender", 1), bar_data("Gender", 1), bar_data("Gender", 1))
-
-all_bars <- phylum_data_bar %>%
+all_bars <- bar_data(1) %>%
   ggplot(aes(fill = Phylum, y = Abundance, x = Group,
              text = paste(Phylum, "\n", str_sub(Abundance, 1, 4), "%"))) +
-  geom_col(position = "fill", stat = "identity") +
-  scale_color_viridis(option = "plasma", discrete = T)
+  geom_bar(position = "fill", stat = "identity") +
+  scale_fill_viridis(option = "plasma", discrete = T)
 ggplotly(all_bars, tooltip = "text")
-
-# reorder bars
+##reorder bars
 ```
 
 ```{r bubble chart}
@@ -349,6 +349,46 @@ ggtree(tree, aes(color=group), layout = 'circular') +
 # 
 # phylum_data_bar <- rbind(phylum_data_ID, phylum_data_pop,
 #                          phylum_data_sex, phylum_data_age, phylum_data_region)
+# 
+# all_bars <- phylum_data_bar %>%
+#   ggplot(aes(fill = Phylum, y = Abundance, x = Group,
+#              text = paste(Phylum, "\n", str_sub(Abundance, 1, 4), "%"))) +
+#   geom_col(position = "fill", stat = "identity") +
+#   scale_color_viridis(option = "plasma", discrete = T)
+# ggplotly(all_bars, tooltip = "text")
+
+
+### bar chart function first draft ###
+
+# bar_data <- function(group, id){
+#   data_id <- phylum_data_full %>%
+#     filter(SqmpleID == as.character(id))
+#   
+#   return(phylum_data_full %>%
+#            filter_at(group, ~ . == data_id[[group]][[1]]) %>%
+#            group_by(Phylum) %>%
+#            summarise(across(Abundance, sum)) %>%
+#            mutate(Abundance/sum(Abundance)*100) %>%
+#            mutate(Group = data_id[[group]][[1]])
+#   )
+# }
+# 
+# phylum_data_pop <- phylum_data_full %>%
+#   group_by(Phylum) %>%
+#   summarise(across(Abundance, sum)) %>%
+#   mutate(Abundance = (Abundance/sum(Abundance))*100) %>%
+#   mutate(Group = "Total Population")
+# 
+# #fix##
+# phylum_data_ID <- phylum_data_full %>%
+#   filter(SampleID == 1) %>%
+#   group_by(Phylum) %>%
+#   summarise(across(Abundance, sum)) %>%
+#   mutate(Abundance = (Abundance/sum(Abundance))*100) %>%
+#   mutate(Group = "ID")
+# 
+# phylum_data_bar <- rbind(phylum_data_ID, phylum_data_pop,
+#                          bar_data("Gender", 1), bar_data("Gender", 1), bar_data("Gender", 1))
 # 
 # all_bars <- phylum_data_bar %>%
 #   ggplot(aes(fill = Phylum, y = Abundance, x = Group,
