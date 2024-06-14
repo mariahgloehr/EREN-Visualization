@@ -17,10 +17,10 @@ taxon <- read.delim("taxon.txt") %>%
   pivot_longer(
     cols = X1:X103,
     names_to = "SampleID",
-    values_to = "Abondance"
+    values_to = "Abundance"
   ) %>%
   mutate(SampleID = as.integer(str_sub(SampleID, 2))) %>%
-  mutate(Percentage = Abondance/100)
+  mutate(Percentage = Abundance/100)
 
 metadata <- read.delim("metadata.txt") %>%
   na.omit()
@@ -28,7 +28,7 @@ metadata <- read.delim("metadata.txt") %>%
 full_data <- metadata %>%
   full_join(taxon, by = "SampleID") %>%
   group_by(SampleID) %>%
-  arrange(desc(Abondance), .by_group = TRUE)
+  arrange(desc(Abundance), .by_group = TRUE)
 
 id = 1
 
@@ -39,7 +39,7 @@ phylum_data <- full_data %>%
   mutate(Phylum = ifelse(clade_name == "UNCLASSIFIED"|str_detect(clade_name, "_unclassified"),
                          "UNCLASSIFIED", str_sub(str_extract(clade_name, "p_.*"), 4))) %>%
   group_by(Phylum = ifelse(Phylum == "UNCLASSIFIED", "UNCLASSIFIED", Phylum)) %>%
-  summarise(across(c(Abondance, Percentage), sum)) %>%
+  summarise(across(c(Abundance, Percentage), sum)) %>%
   ungroup()
 
 family_data <- full_data %>%
@@ -49,7 +49,7 @@ family_data <- full_data %>%
   mutate(Family = ifelse(clade_name == "UNCLASSIFIED"|str_detect(clade_name, "_unclassified"),
                          "UNCLASSIFIED", str_sub(str_extract(clade_name, "f_.*"), 4))) %>%
   group_by(Family = ifelse(Family == "UNCLASSIFIED", "UNCLASSIFIED", Family)) %>%
-  summarise(across(c(Abondance, Percentage), sum)) %>%
+  summarise(across(c(Abundance, Percentage), sum)) %>%
   ungroup()
 
 genre_data <- full_data %>%
@@ -59,7 +59,7 @@ genre_data <- full_data %>%
   mutate(Genre = ifelse(clade_name == "UNCLASSIFIED"|str_detect(clade_name, "_unclassified"),
                         "UNCLASSIFIED", str_sub(str_extract(clade_name, "g_.*"), 4))) %>%
   group_by(Genre = ifelse(Genre == "UNCLASSIFIED", "UNCLASSIFIED", Genre)) %>%
-  summarise(across(c(Abondance, Percentage), sum)) %>%
+  summarise(across(c(Abundance, Percentage), sum)) %>%
   ungroup()
 
 
@@ -104,18 +104,18 @@ ui <- fluidPage(
 server <- function(input, output) {
   
   output$phylum_table <- phylum_data %>%
-    select(Phylum, Abondance) %>%
-    filter(Abondance != 0) %>%
+    select(Phylum, Abundance) %>%
+    filter(Abundance != 0) %>%
     renderDataTable()
   
   output$family_table <- family_data %>%
-    select(Family, Abondance) %>%
-    filter(Abondance != 0) %>%
+    select(Family, Abundance) %>%
+    filter(Abundance != 0) %>%
     renderDataTable()
   
   output$genre_table <- genre_data %>%
-    select(Genre, Abondance) %>%
-    filter(Abondance != 0) %>%
+    select(Genre, Abundance) %>%
+    filter(Abundance != 0) %>%
     renderDataTable()
 }
 
