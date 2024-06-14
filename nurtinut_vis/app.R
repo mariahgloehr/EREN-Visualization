@@ -4,72 +4,105 @@
 #
 # Find out more about building applications with Shiny here:
 #
-#    http://shiny.rstudio.com/
+#    https://shiny.posit.co/
 #
 
-#load libraries
 library(shiny)
 library(tidyverse)
-library(plotly)
-library(ggtree)
-library(packcircles)
+library(DT)
 
-#load data
+## load data sets
 taxon <- read.delim("taxon.txt") %>%
   na.omit() %>%
   pivot_longer(
     cols = X1:X103,
     names_to = "SampleID",
-    values_to = "abondance"
+    values_to = "Abondance"
   ) %>%
   mutate(SampleID = as.integer(str_sub(SampleID, 2))) %>%
-  mutate(Percentage = abondance/100)
+  mutate(Percentage = Abondance/100)
 
 metadata <- read.delim("metadata.txt") %>%
   na.omit()
 
-full_data <- metadata %>% 
+full_data <- metadata %>%
   full_join(taxon, by = "SampleID") %>%
   group_by(SampleID) %>%
-  arrange(desc(abondance), .by_group = T)
+  arrange(desc(Abondance), .by_group = TRUE)
 
-# Define UI for application that draws a histogram
+id = 1
+
+phylum_data <- full_data %>%
+  filter(SampleID == id) %>%
+  filter(str_detect(clade_name, "p_")) %>%
+  filter(!str_detect(clade_name, "c_|o_|f_|g_|s_|_unclassified")) %>%
+  mutate(Phylum = str_sub(str_extract(clade_name, "p_.*"), 4)) %>%
+  ungroup()
+
+family_data <- full_data %>%
+  filter(SampleID == id) %>%
+  filter(str_detect(clade_name, "f_")) %>%
+  filter(!str_detect(clade_name, "g_|s_|_unclassified")) %>%
+  mutate(Family = str_sub(str_extract(clade_name, "f_.*"), 4)) %>%
+  ungroup()
+
+genre_data <- full_data %>%
+  filter(SampleID == id) %>%
+  filter(str_detect(clade_name, "g_")) %>%
+  filter(!str_detect(clade_name, "s_|_unclassified")) %>%
+  mutate(Genre = str_sub(str_extract(clade_name, "g_.*"), 4)) %>%
+  ungroup()
+
+
+# table_test <- full_data %>%
+#   filter(SampleID == id) %>%
+#   separate_wider_delim(col = clade_name,
+#                        delim = "|",
+#                        names = c("Kingdom", "Phylum", "Class", "Order", "Family", "Genre", "Species", "T"),
+#                        too_few = "align_start")
+
+# Define UI  
 ui <- fluidPage(
-
-    # Application title
-    titlePanel("Old Faithful Geyser Data"),
-
-    # Sidebar with a slider input for number of bins 
-    sidebarLayout(
-        sidebarPanel(
-            sliderInput("bins",
-                        "Number of bins:",
-                        min = 1,
-                        max = 50,
-                        value = 30)
-        ),
-
-        # Show a plot of the generated distribution
-        mainPanel(
-           plotOutput("distPlot")
-        )
-    )
+  fluidRow(
+    column(4, dataTableOutput("phylum_table")),
+    column(4, dataTableOutput("family_table")),
+    column(4, dataTableOutput("genre_table"))
+  )
 )
+
+#   tabsetPanel(
+#   tabPanel("Phylum",
+#            dataTableOutput("phylum_table")),
+#   tabPanel("Family",
+#            dataTableOutput("family_table")),
+#   tabPanel("Genre",
+#            dataTableOutput("genre_table"))
+# )
+
+#   fluidPage(
+#   fluidRow(
+#     column(4, dataTableOutput("phylum_table")),
+#     column(4, dataTableOutput("family_table")),
+#     column(4, dataTableOutput("genre_table"))
+#   )
+# )
+
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
-
-    output$distPlot <- renderPlot({
-        # generate bins based on input$bins from ui.R
-        x    <- faithful[, 2]
-        bins <- seq(min(x), max(x), length.out = input$bins + 1)
-
-        # draw the histogram with the specified number of bins
-        hist(x, breaks = bins, col = 'darkgray', border = 'white',
-             xlab = 'Waiting time to next eruption (in mins)',
-             main = 'Histogram of waiting times')
-    })
+  
+  output$phylum_table <- phylum_data %>%
+    select(Phylum, Abondance) %>%
+    renderDataTable()
+  
+  output$family_table <- family_data %>%
+    select(Family, Abondance) %>%
+    renderDataTable()
+  
+  output$genre_table <- genre_data %>%
+    select(Genre, Abondance) %>%
+    renderDataTable()
 }
 
-# Run the application 
+# Run the application
 shinyApp(ui = ui, server = server)
