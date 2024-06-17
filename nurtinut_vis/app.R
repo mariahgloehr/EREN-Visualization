@@ -11,6 +11,10 @@ library(shiny)
 library(tidyverse)
 library(DT)
 
+
+## assign ID
+id = 3
+
 ## load data sets
 taxon <- read.delim("taxon.txt") %>%
   na.omit() %>%
@@ -25,13 +29,116 @@ taxon <- read.delim("taxon.txt") %>%
 metadata <- read.delim("metadata.txt") %>%
   na.omit()
 
+## create datasets
 full_data <- metadata %>%
   full_join(taxon, by = "SampleID") %>%
   group_by(SampleID) %>%
-  arrange(desc(Abundance), .by_group = TRUE)
+  arrange(desc(Abundance), .by_group = TRUE) %>%
+  mutate(Gender = ifelse(Gender == 1, "Homme", "Femme"))
 
-id = 1
+### chart functions ###
+#phylum donut function
+phylum_donut <- function(id){
+  phylum_data <- full_data %>%
+    filter(SampleID == as.character(id)) %>%
+    filter(str_detect(clade_name, "p_")) %>%
+    filter(!str_detect(clade_name, "c_|o_|f_|g_|s_|_unclassified")) %>%
+    mutate(Phylum = str_sub(str_extract(clade_name, "p_.*"), 4))
+  
+  return(phylum_data %>%
+           plot_ly(labels = ~Phylum, values = ~Percentage,
+                   textposition = "inside",
+                   hoverinfo = "label+percent")%>%
+           add_pie(hole = 0.6) %>%
+           layout(title = paste(id, "Phylum Chart"),  showlegend = FALSE,
+                  xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+                  yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+  )
+}
 
+##family donut function
+family_donut <- function(id){
+  family_data <- full_data %>%
+    filter(SampleID == as.character(id)) %>%
+    filter(str_detect(clade_name, "f_")) %>%
+    filter(!str_detect(clade_name, "g_|s_|_unclassified"))%>%
+    group_by(clade_name = ifelse(row_number() < 10, clade_name, "Autres")) %>%
+    summarise(across(c(Abundance, Percentage), sum)) %>%
+    mutate(Family = ifelse(clade_name == "Autres", "Autres", str_sub(str_extract(clade_name, "f_.*"), 4)))
+  
+  return(family_data %>%
+           plot_ly(labels = ~Family, values = ~Percentage,
+                   textposition = "inside",
+                   # textinfo = ifelse(Percentage < 1, "", "label"),
+                   hoverinfo = "label+percent")%>%
+           add_pie(hole = 0.6) %>%
+           layout(title = paste(id, "Family Chart"),  showlegend = FALSE,
+                  xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+                  yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+  )
+}
+
+##genre donut function
+genre_donut <- function(id){
+  genre_data <- full_data %>%
+    filter(SampleID == as.character(id)) %>%
+    filter(str_detect(clade_name, "g_")) %>%
+    filter(!str_detect(clade_name, "s_|_unclassified"))%>%
+    group_by(clade_name = ifelse(row_number() < 20, clade_name, "Autres")) %>%
+    summarise(across(c(Abundance, Percentage), sum)) %>%
+    mutate(Genre = ifelse(clade_name == "Autres", "Autres", str_sub(str_extract(clade_name, "g_.*"), 4)))
+  
+  return(genre_data %>%
+           plot_ly(labels = ~Genre, values = ~Percentage,
+                   textposition = "inside",
+                   # textinfo = ifelse(Percentage < 1, "", "label"),
+                   hoverinfo = "label+percent")%>%
+           add_pie(hole = 0.6) %>%
+           layout(title = paste(id, "Genre Chart"),  showlegend = FALSE,
+                  xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+                  yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+  )
+}
+### barchart function ###
+bar_data <- function(id) {
+  phylum_data_full <- full_data %>%
+    filter(str_detect(clade_name, "p_")) %>%
+    filter(!str_detect(clade_name, "c_|o_|f_|g_|s_|_unclassified")) %>%
+    mutate(Phylum = str_sub(str_extract(clade_name, "p_.*"), 4))
+  
+  data_id <- phylum_data_full %>%
+    filter(SampleID == as.character(id))
+  
+  phylum_data_pop <- phylum_data_full %>%
+    group_by(Phylum) %>%
+    summarise(across(Abundance, sum)) %>%
+    mutate(Abundance = (Abundance/sum(Abundance))*100) %>%
+    mutate(Group = "Total Population")
+  
+  phylum_data_ID <- phylum_data_full %>%
+    filter(SampleID == as.character(id)) %>%
+    group_by(Phylum) %>%
+    summarise(across(Abundance, sum)) %>%
+    mutate(Abundance = (Abundance/sum(Abundance))*100) %>%
+    mutate(Group = "Vous")
+  
+  phylum_data_bar <- rbind(phylum_data_ID, phylum_data_pop)
+  
+  for (group in c("Gender", "Age_class", "Region")) {
+    phylum_data_bar <- phylum_data_full %>%
+      filter_at(group, ~ . == data_id[[group]][[1]]) %>%
+      group_by(Phylum) %>%
+      summarise(across(Abundance, sum)) %>%
+      mutate(Abundance = (Abundance/sum(Abundance))*100) %>%
+      mutate(Group = data_id[[group]][[1]]) %>%
+      rbind(phylum_data_bar)
+  }
+  return(phylum_data_bar %>%
+           mutate(Group = fct_relevel(Group, c("Vous", "Total Population",
+                                               data_id[["Gender"]][[1]], data_id[["Age_class"]][[1]], data_id[["Region"]][[1]]))))
+}
+
+### table datasets ###
 phylum_data <- full_data %>%
   filter(SampleID == id) %>%
   filter(str_detect(clade_name, "p_|UNCLASSIFIED|_unclassified")) %>%
@@ -74,11 +181,17 @@ genre_data <- full_data %>%
 ui <- fluidPage(
   tabsetPanel(
     tabPanel("Phylum",
-             dataTableOutput("phylum_table")),
+             plotlyOutput("phylum_donut"),
+             dataTableOutput("phylum_table")
+    ),
     tabPanel("Family",
+             plotlyOutput("family_donut"),
              dataTableOutput("family_table")),
     tabPanel("Genre",
-             dataTableOutput("genre_table"))
+             plotlyOutput("genre_donut"),
+             dataTableOutput("genre_table")),
+    tabPanel("Comparison",
+             plotlyOutput("barplot"))
   )
 )
 
@@ -103,6 +216,18 @@ ui <- fluidPage(
 # Define server logic required to draw a histogram
 server <- function(input, output) {
   
+  output$phylum_donut <- renderPlotly({
+    phylum_donut(id)
+  })  
+  
+  output$family_donut <- renderPlotly({
+    family_donut(id)
+  })  
+  
+  output$genre_donut <- renderPlotly({
+    genre_donut(id)
+  })  
+  
   output$phylum_table <- phylum_data %>%
     select(Phylum, Abundance) %>%
     filter(Abundance != 0) %>%
@@ -117,6 +242,17 @@ server <- function(input, output) {
     select(Genre, Abundance) %>%
     filter(Abundance != 0) %>%
     renderDataTable()
+  
+  output$barplot <- renderPlotly({
+    all_bars <- bar_data(id) %>%
+      ggplot(aes(fill = Phylum, y = Abundance, x = Group,
+                 text = paste(Phylum, "\n", str_sub(Abundance, 1, 4), "%"))) +
+      geom_bar(position = "fill", stat = "identity") +
+      scale_fill_viridis(option = "plasma", discrete = T) +
+      labs(title = paste(id,"'s Phylum Comparison"))
+    
+    ggplotly(all_bars, tooltip = "text")
+  })
 }
 
 # Run the application
