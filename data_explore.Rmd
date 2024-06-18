@@ -221,23 +221,22 @@ bubble_data = cbind(genre_data, packing)
 plotcard <- circleLayoutVertices(packing, npoints = 50)
 
 plotcard$Abundance <- rep(bubble_data$Abundance, each = 51)
+plotcard$Genre <- rep(bubble_data$Genre, each = 51)
 
-bubble <- ggplot() +
+bubble <- ggplot(data = plotcard, aes(x=x, y=y)) +
+  geom_text(data = filter(bubble_data, Abundance >= 0.5), mapping = 
+              aes(x, y, size = Abundance, label= Genre)) +
   geom_polygon(data = plotcard, aes(x, y, group = id, fill = Abundance,
-                                    text = paste(genre, "\n", str_sub(Abundance, 1, 4), "%")), 
-               color = "black", alpha = 0.7) +
+                                    text = paste(Genre, "\n", str_sub(Abundance, 1, 4), "%")), 
+               color = "black", alpha = 0.6) +
   scale_fill_viridis() +
-  geom_text(data = bubble_data, aes(x,y,size=Abundance, 
-                                    label= ifelse(Abundance < 0.5, "", paste0(genre)),
-                                    text = paste(genre, "\n", str_sub(Abundance, 1, 4), "%"))) +
   scale_size_continuous(range = c(1,4)) +
   theme_void() +
   theme(legend.position = "none") +
   coord_equal()
 
-bubble 
-
-ggplotly(bubble)
+ggplotly(bubble, tooltip = "text") %>%
+  style(hoverinfo = "none", traces = c(1:n_distinct(plotcard[plotcard$abundance >= 0.5, ])))
 ```
 
 ```{r ggtree}
