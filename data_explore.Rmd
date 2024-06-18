@@ -236,7 +236,7 @@ bubble <- ggplot(data = plotcard, aes(x=x, y=y)) +
   coord_equal()
 
 ggplotly(bubble, tooltip = "text") %>%
-  style(hoverinfo = "none", traces = c(1:n_distinct(plotcard[plotcard$abundance >= 0.5, ])))
+  style(hoverinfo = "none", traces = 1)
 ```
 
 ```{r ggtree}
