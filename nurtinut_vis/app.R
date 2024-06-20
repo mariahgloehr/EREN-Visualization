@@ -10,6 +10,9 @@
 library(shiny)
 library(tidyverse)
 library(DT)
+library(plotly)
+library(viridis)
+library(packcircles)
 
 
 ## assign ID
@@ -138,6 +141,39 @@ bar_data <- function(id) {
                                                data_id[["Gender"]][[1]], data_id[["Age_class"]][[1]], data_id[["Region"]][[1]]))))
 }
 
+
+## bubble chart function
+bubble_chart <- function(ID){
+  genre_data <- full_data %>%
+    filter(SampleID == as.character(ID)) %>%
+    fitler(str_detect(clade_name, "g_")) %>%
+    filter(!str_detect(clade_name, "s_|_unclassified")) %>%
+    mutate(Genre = str_sub(str_extract(clade_name, "g_.*"), 4))
+  
+  packing <- circleProgressiveLayout(genre_data$Abundance, sizetype = "area")
+  bubble_data <- cbind(genre_data, packing)
+  plotcard <- circleLayoutVertices(packing, npoints = 50)
+  
+  plotcard$Abundance <- rep(bubble_data$Abundance, each = 51)
+  plotcard$Genre <- rep(bubble_data$Genre, each = 51)
+  
+  bubble <- ggplot(data = plotcard, aes(x = x, y = y)) +
+    geom_text(data = filter(bubble_data, Abundance >= 0.5), 
+              mapping = aes(x,y, size = Abundance, label = Genre)) +
+    geom_polygon(data = plotcard, aes(x,y, group = id, fill = Abundance,
+                                      text = paste(Genre, "\n", str_sub(Abundance, 1, 4), "%")),
+                 color = "black", alpha = 0.6) +
+    scale_fill_viridis() +
+    scale_size_continuous(range = c(1,4)) +
+    theme_void() +
+    theme(legend.position = "none") +
+    coord_equal() +
+    labs(title = paste("Vos", n_distinct(plotcard$Genre), "Microbiotes"))
+  
+  return(ggplotly(bubble, tooltip = "test") %>%
+           style(hoverinfo = "none", traces = 1))
+}
+
 ### table datasets ###
 phylum_data <- full_data %>%
   filter(SampleID == id) %>%
@@ -191,7 +227,9 @@ ui <- fluidPage(
              plotlyOutput("genre_donut"),
              dataTableOutput("genre_table")),
     tabPanel("Comparison",
-             plotlyOutput("barplot"))
+             plotlyOutput("barplot")),
+    tabPanel("Bubble Chart",
+             plotlyOutput("bubble_chart"))
   )
 )
 
@@ -215,6 +253,10 @@ ui <- fluidPage(
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
+  
+  output$bubble_chart <- renderPlotly({
+    bubble_chart(id)
+  })
   
   output$phylum_donut <- renderPlotly({
     phylum_donut(id)
