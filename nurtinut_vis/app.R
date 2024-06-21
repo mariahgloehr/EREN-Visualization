@@ -148,7 +148,8 @@ bubble_chart <- function(ID){
     filter(SampleID == as.character(ID)) %>%
     fitler(str_detect(clade_name, "g_")) %>%
     filter(!str_detect(clade_name, "s_|_unclassified")) %>%
-    mutate(Genre = str_sub(str_extract(clade_name, "g_.*"), 4))
+    mutate(Genre = str_sub(str_extract(clade_name, "g_.*"), 4)) %>%
+    filter(Abundance != 0)
   
   packing <- circleProgressiveLayout(genre_data$Abundance, sizetype = "area")
   bubble_data <- cbind(genre_data, packing)
