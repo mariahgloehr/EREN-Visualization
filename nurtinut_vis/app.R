@@ -50,7 +50,9 @@ phylum_donut <- function(id){
   
   return(phylum_data %>%
            plot_ly(labels = ~Phylum, values = ~Percentage,
-                   textposition = "inside",
+                   text = ifelse(phylum_data$Abundance < 0.5, "", paste(phylum_data$Phylum)),
+                   textposition = "outside",
+                   textinfo = "text",
                    hoverinfo = "label+percent")%>%
            add_pie(hole = 0.6) %>%
            layout(title = paste(id, "Phylum Chart"),  showlegend = FALSE,
@@ -71,8 +73,8 @@ family_donut <- function(id){
   
   return(family_data %>%
            plot_ly(labels = ~Family, values = ~Percentage,
-                   textposition = "inside",
-                   # textinfo = ifelse(Percentage < 1, "", "label"),
+                   textposition = "outside",
+                   textinfo = "label",
                    hoverinfo = "label+percent")%>%
            add_pie(hole = 0.6) %>%
            layout(title = paste(id, "Family Chart"),  showlegend = FALSE,
@@ -93,8 +95,8 @@ genre_donut <- function(id){
   
   return(genre_data %>%
            plot_ly(labels = ~Genre, values = ~Percentage,
-                   textposition = "inside",
-                   # textinfo = ifelse(Percentage < 1, "", "label"),
+                   textposition = "outside",
+                   textinfo = "label",
                    hoverinfo = "label+percent")%>%
            add_pie(hole = 0.6) %>%
            layout(title = paste(id, "Genre Chart"),  showlegend = FALSE,
