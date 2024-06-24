@@ -162,7 +162,7 @@ genre_donut <- genre_data_donut %>%
   add_pie(hole = 0.6) %>%
   layout(title = "Donut Genre Chart", showlegend = F,
          xaxis = list(showgrid = F, zeroline = F, showticklabels = F),
-         yxis = list(showgrid = F, zeroline = F, showticklables = F))
+         yxis = list(showgrid = F, zeroline = F, showticklabels = F))
 ```
 
 ```{r bar chart data explore}
@@ -221,7 +221,7 @@ bubble_data = cbind(genre_data, packing)
 plotcard <- circleLayoutVertices(packing, npoints = 50)
 
 plotcard$Abundance <- rep(bubble_data$Abundance, each = 51)
-plotcard$Genre <- rep(bubble_data$Genre, each = 51)
+plotcard$Genre <- rep(bubble_data$Genre, each = 51) 
 
 bubble <- ggplot(data = plotcard, aes(x=x, y=y)) +
   geom_text(data = filter(bubble_data, Abundance >= 0.5), mapping = 
