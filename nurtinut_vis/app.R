@@ -208,14 +208,6 @@ genre_data <- full_data %>%
   summarise(across(c(Abundance, Percentage), sum)) %>%
   ungroup()
 
-
-# table_test <- full_data %>%
-#   filter(SampleID == id) %>%
-#   separate_wider_delim(col = clade_name,
-#                        delim = "|",
-#                        names = c("Kingdom", "Phylum", "Class", "Order", "Family", "Genre", "Species", "T"),
-#                        too_few = "align_start")
-
 # Define UI  
 ui <- fluidPage(
   tabsetPanel(
@@ -235,24 +227,6 @@ ui <- fluidPage(
              plotlyOutput("bubble_chart"))
   )
 )
-
-#   tabsetPanel(
-#   tabPanel("Phylum",
-#            dataTableOutput("phylum_table")),
-#   tabPanel("Family",
-#            dataTableOutput("family_table")),
-#   tabPanel("Genre",
-#            dataTableOutput("genre_table"))
-# )
-
-#   fluidPage(
-#   fluidRow(
-#     column(4, dataTableOutput("phylum_table")),
-#     column(4, dataTableOutput("family_table")),
-#     column(4, dataTableOutput("genre_table"))
-#   )
-# )
-
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {

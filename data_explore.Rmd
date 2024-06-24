@@ -556,4 +556,11 @@ ggtree(tree, aes(color=group), layout = 'circular') +
 #   layout(title = "Donut Genre Chart", showlegend = F,
 #          xaxis = list(showgrid = F, zeroline = F, showticklabels = F),
 #          yxis = list(showgrid = F, zeroline = F, showticklables = F))
+
+##  species name break down ##
+# separate_wider_delim(col = clade_name,
+#                      delim = "|",
+#                      names = c("Kingdom", "Phylum", "Class",
+#                                "Order", "Family", "Genre", "Species", "T"),
+#                      too_few = "align_start")
 ```
