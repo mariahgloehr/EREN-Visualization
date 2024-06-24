@@ -60,7 +60,7 @@ phylum_donut <- function(id){
     add_pie(hole = 0.6) %>%
     layout(title = paste(id, "Phylum Chart"), showlegend = FALSE,
            xaxis = list(showgrid = F, zeroline = F, showticklabels = F),
-           yaxis = list(showgrid = F, zeroline = F, showticklables = F))
+           yaxis = list(showgrid = F, zeroline = F, showticklabels = F))
   )
 }
 
@@ -82,7 +82,7 @@ family_donut <- function(id){
             add_pie(hole = 0.6) %>%
             layout(title = paste(id, "Family Chart"), showlegend = F,
                    xaxis = list(showgrid = F, zeroline = F, showticklabels = F),
-                   yxis = list(showgrid = F, zeroline = F, showticklables = F))
+                   yxis = list(showgrid = F, zeroline = F, showticklabels = F))
   )
 }
 
@@ -103,7 +103,7 @@ genre_donut <- function(id){
            add_pie(hole = 0.6) %>%
            layout(title = paste(id, "Genre Chart"), showlegend = F,
                    xaxis = list(showgrid = F, zeroline = F, showticklabels = F),
-                   yxis = list(showgrid = F, zeroline = F, showticklables = F))
+                   yxis = list(showgrid = F, zeroline = F, showticklabels = F))
   )
 }
 ```
@@ -124,7 +124,7 @@ phylum_donut <- phylum_data %>%
   add_pie(hole = 0.6) %>%
   layout(title = "Donut Phylum Chart", showlegend = F,
          xaxis = list(showgrid = F, zeroline = F, showticklabels = F),
-         yxis = list(showgrid = F, zeroline = F, showticklables = F))
+         yxis = list(showgrid = F, zeroline = F, showticklabels = F))
   
 
 ## family donut chart (top 10)
@@ -144,7 +144,7 @@ family_donut <- family_data %>%
   add_pie(hole = 0.6) %>%
   layout(title = "Donut Family Chart", showlegend = F,
          xaxis = list(showgrid = F, zeroline = F, showticklabels = F),
-         yxis = list(showgrid = F, zeroline = F, showticklables = F))
+         yxis = list(showgrid = F, zeroline = F, showticklabels = F))
 
 ## genre donut chart (top 15)
 genre_data_donut <- data_id %>%
@@ -517,7 +517,7 @@ ggtree(tree, aes(color=group), layout = 'circular') +
 #   add_pie(hole = 0.6) %>%
 #   layout(title = "Donut Phylum Chart", showlegend = F,
 #          xaxis = list(showgrid = F, zeroline = F, showticklabels = F),
-#          yxis = list(showgrid = F, zeroline = F, showticklables = F))
+#          yxis = list(showgrid = F, zeroline = F, showticklabels = F))
 #   
 # 
 # ## family donut chart (top 10)
@@ -537,7 +537,7 @@ ggtree(tree, aes(color=group), layout = 'circular') +
 #   add_pie(hole = 0.6) %>%
 #   layout(title = "Donut Family Chart", showlegend = F,
 #          xaxis = list(showgrid = F, zeroline = F, showticklabels = F),
-#          yxis = list(showgrid = F, zeroline = F, showticklables = F))
+#          yxis = list(showgrid = F, zeroline = F, showticklabels = F))
 # 
 # ## genre donut chart (top 15)
 # genre_data_donut <- data_id %>%
@@ -555,7 +555,7 @@ ggtree(tree, aes(color=group), layout = 'circular') +
 #   add_pie(hole = 0.6) %>%
 #   layout(title = "Donut Genre Chart", showlegend = F,
 #          xaxis = list(showgrid = F, zeroline = F, showticklabels = F),
-#          yxis = list(showgrid = F, zeroline = F, showticklables = F))
+#          yxis = list(showgrid = F, zeroline = F, showticklabels = F))
 
 ##  species name break down ##
 # separate_wider_delim(col = clade_name,
