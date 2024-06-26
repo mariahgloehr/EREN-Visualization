@@ -234,9 +234,6 @@ bubble <- ggplot(data = plotcard, aes(x=x, y=y)) +
   theme_void() +
   theme(legend.position = "none") +
   coord_equal()
-
-ggplotly(bubble, tooltip = "text") %>%
-  style(hoverinfo = "none", traces = 1)
 ```
 
 ```{r}
@@ -271,8 +268,6 @@ bubble_chart <- function(ID){
            style(hoverinfo = "none", traces = 1))
 }
 ```
-
-
 
 ```{r ggtree}
 something <- system.file()
