@@ -63,6 +63,11 @@ phylum_colors <- function(x){
   my_colors[cols]
 }
 
+family_colors <- function(x){
+  cols <- c(x)
+  my_colors[cols]
+}
+
 ## create new datasets
 #create full data set with all taxon data and metadata
 full_data <- metadata %>%
@@ -129,7 +134,8 @@ family_donut <- function(id){
   family_donut_data <- family_data %>%
     group_by(Family = ifelse(row_number() < 10, Family, "Autres")) %>%
     summarise(across(c(Abundance, Percentage), sum)) %>%
-    ungroup()
+    ungroup() %>%
+    mutate(Phylum = ifelse(Family == "Autres", NA, family_data$Phylum))
   
   return(family_donut_data %>%
            plot_ly(labels = ~Family, values = ~Percentage,
@@ -139,7 +145,7 @@ family_donut <- function(id){
                    hoverinfo = "label+percent",
                    type='pie',
                    hole=0.5,
-                   marker = list(colors = ~my_colors))%>%
+                   marker = list(colors = ~family_colors(Phylum)))%>%
            add_pie(hole = 0.5) %>%
            layout(title = list(text = paste(n_distinct(family_data$Family), "Familles"),
                                font = list(color = "#e2007a")),
