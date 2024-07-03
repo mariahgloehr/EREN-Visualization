@@ -10,17 +10,15 @@
 # install.packages("shiny")
 # install.packages("tidyverse")
 # install.packages("plotly")
-# install.packages("DT")
 # install.packages("packcircles")
 library(shiny)
 library(tidyverse)
 library(plotly)
-# library(DT)
 library(packcircles)
 
 
 ## assign ID
-id = 15
+id = 100
 
 ## load data sets
 #we want the taxon data in a form where we have the following columns: "clade_name", "SampleID", "Abundance", "Percentage"
@@ -38,12 +36,12 @@ metadata <- read.delim("metadata.txt") %>% #load in metadata, want columns: "Sam
   na.omit()
 
 ## create color palette based on nutrinet colors, do not change
-my_colors <- c(
+my_phylum_colors <- c(
   "Firmicutes" = "#75b70b",
   "Bacteroidetes" = "#e2007a",
   "Tenericutes" = "#2C73D2",
   "Euryarchaeota" = "#F9F871",
-  "Candidatus_Melainabacteria" = "#CAA8F5",
+  "Candidatus Melainabacteria" = "#CAA8F5",
   "Actinobacteria" = "#92ceea",
   "Thaumarchaeota" = "#38A3A5",
   "Fusobacteria" = "#DF97AD",
@@ -52,21 +50,200 @@ my_colors <- c(
   "Lentisphaerae" = "#00c1FF",
   "Verrucomicrobia" = "#B744BE",
   "Synergistetes" = "#025400",
-  "Candidatus_Thermoplasmatota" = "#008EF5",
-  "Candidatus_Saccharibacteria" = "#C35355",
+  "Candidatus Thermoplasmatota" = "#008EF5",
+  "Candidatus Saccharibacteria" = "#C35355",
   "Spirochaetes" = "#965A4A",
   "Cyanobacteria" = "#FF7378"
 )
 
-phylum_colors <- function(x){
-  cols <- c(x)
-  my_colors[cols]
+phylum_colors <- function(Phylum){
+  cols <- c(Phylum)
+  my_phylum_colors[cols]
 }
 
-family_colors <- function(x){
-  cols <- c(x)
-  my_colors[cols]
+my_family_colors <- c(
+  "Autres" = "#A7AE9C",
+  "Firmicutes" = "#75b70bFF",
+  "Firmicutes" = "#75b70bAA",
+  "Firmicutes" = "#75b70b88",
+  "Firmicutes" = "#75b70b77",
+  "Firmicutes" = "#75b70b66",
+  "Firmicutes" = "#75b70b55",
+  "Firmicutes" = "#75b70b44",
+  "Firmicutes" = "#75b70b33",
+  "Firmicutes" = "#75b70b22",
+  "Bacteroidetes" = "#e2007aFF",
+  "Bacteroidetes" = "#e2007aAA",
+  "Bacteroidetes" = "#e2007a88",
+  "Bacteroidetes" = "#e2007a77",
+  "Bacteroidetes" = "#e2007a66",
+  "Bacteroidetes" = "#e2007a55",
+  "Bacteroidetes" = "#e2007a44",
+  "Bacteroidetes" = "#e2007a33",
+  "Bacteroidetes" = "#e2007a22",
+  "Tenericutes" = "#2C73D2EE",
+  "Tenericutes" = "#2C73D2CC",
+  "Tenericutes" = "#2C73D2AA",
+  "Tenericutes" = "#2C73D288",
+  "Tenericutes" = "#2C73D277",
+  "Tenericutes" = "#2C73D266",
+  "Tenericutes" = "#2C73D255",
+  "Tenericutes" = "#2C73D244",
+  "Tenericutes" = "#2C73D233",
+  "Tenericutes" = "#2C73D222",
+  "Euryarchaeota" = "#F9F871FF",
+  "Euryarchaeota" = "#F9F871AA",
+  "Euryarchaeota" = "#F9F87188",
+  "Euryarchaeota" = "#F9F87177",
+  "Euryarchaeota" = "#F9F87166",
+  "Euryarchaeota" = "#F9F87155",
+  "Euryarchaeota" = "#F9F87144",
+  "Candidatus Melainabacteria" = "#CAA8F5FF",
+  "Candidatus Melainabacteria" = "#CAA8F5EE",
+  "Candidatus Melainabacteria" = "#CAA8F5CC",
+  "Candidatus Melainabacteria" = "#CAA8F5AA",
+  "Candidatus Melainabacteria" = "#CAA8F599",
+  "Candidatus Melainabacteria" = "#CAA8F588",
+  "Candidatus Melainabacteria" = "#CAA8F577",
+  "Candidatus Melainabacteria" = "#CAA8F566",
+  "Candidatus Melainabacteria" = "#CAA8F555",
+  "Candidatus Melainabacteria" = "#CAA8F544",
+  "Actinobacteria" = "#92ceeaFF",
+  "Actinobacteria" = "#92ceea88",
+  "Actinobacteria" = "#92ceea77",
+  "Actinobacteria" = "#92ceea66",
+  "Actinobacteria" = "#92ceea55",
+  "Actinobacteria" = "#92ceea44",
+  "Thaumarchaeota" = "#38A3A5EE",
+  "Thaumarchaeota" = "#38A3A5CC",
+  "Thaumarchaeota" = "#38A3A5AA",
+  "Thaumarchaeota" = "#38A3A588",
+  "Thaumarchaeota" = "#38A3A577",
+  "Thaumarchaeota" = "#38A3A566",
+  "Thaumarchaeota" = "#38A3A555",
+  "Thaumarchaeota" = "#38A3A544",
+  "Thaumarchaeota" = "#38A3A533",
+  "Thaumarchaeota" = "#38A3A522",
+  "Fusobacteria" = "#DF97ADFF",
+  "Fusobacteria" = "#DF97ADEE",
+  "Fusobacteria" = "#DF97ADCC",
+  "Fusobacteria" = "#DF97ADAA",
+  "Fusobacteria" = "#DF97AD99",
+  "Fusobacteria" = "#DF97AD88",
+  "Fusobacteria" = "#DF97AD77",
+  "Fusobacteria" = "#DF97AD66",
+  "Fusobacteria" = "#DF97AD55",
+  "Fusobacteria" = "#DF97AD44",
+  "Proteobacteria" = "#FFA347FF",
+  "Proteobacteria" = "#FFA347AA",
+  "Proteobacteria" = "#FFA34788",
+  "Proteobacteria" = "#FFA34777",
+  "Proteobacteria" = "#FFA34766",
+  "Proteobacteria" = "#FFA34755",
+  "Proteobacteria" = "#FFA34744",
+  "Elusimicrobia" = "#FF9DE8FF",
+  "Elusimicrobia" = "#FF9DE8DD",
+  "Elusimicrobia" = "#FF9DE8BB",
+  "Elusimicrobia" = "#FF9DE8AA",
+  "Elusimicrobia" = "#FF9DE899",
+  "Elusimicrobia" = "#FF9DE888",
+  "Elusimicrobia" = "#FF9DE877",
+  "Elusimicrobia" = "#FF9DE866",
+  "Elusimicrobia" = "#FF9DE855",
+  "Elusimicrobia" = "#FF9DE844",
+  "Lentisphaerae" = "#00c1FFEE",
+  "Lentisphaerae" = "#00c1FFCC",
+  "Lentisphaerae" = "#00c1FFAA",
+  "Lentisphaerae" = "#00c1FF88",
+  "Lentisphaerae" = "#00c1FF77",
+  "Lentisphaerae" = "#00c1FF66",
+  "Lentisphaerae" = "#00c1FF55",
+  "Lentisphaerae" = "#00c1FF44",
+  "Lentisphaerae" = "#00c1FF33",
+  "Lentisphaerae" = "#00c1FF22",
+  "Verrucomicrobia" = "#B744BEEE",
+  "Verrucomicrobia" = "#B744BECC",
+  "Verrucomicrobia" = "#B744BEAA",
+  "Verrucomicrobia" = "#B744BE88",
+  "Verrucomicrobia" = "#B744BE77",
+  "Verrucomicrobia" = "#B744BE66",
+  "Verrucomicrobia" = "#B744BE55",
+  "Verrucomicrobia" = "#B744BE44",
+  "Verrucomicrobia" = "#B744BE33",
+  "Verrucomicrobia" = "#B744BE22",
+  "Synergistetes" = "#025400EE",
+  "Synergistetes" = "#025400CC",
+  "Synergistetes" = "#025400AA",
+  "Synergistetes" = "#02540088",
+  "Synergistetes" = "#02540077",
+  "Synergistetes" = "#02540066",
+  "Synergistetes" = "#02540055",
+  "Synergistetes" = "#02540044",
+  "Synergistetes" = "#02540033",
+  "Synergistetes" = "#02540022",
+  "Candidatus Thermoplasmatota" = "#008EF5EE",
+  "Candidatus Thermoplasmatota" = "#008EF5CC",
+  "Candidatus Thermoplasmatota" = "#008EF5AA",
+  "Candidatus Thermoplasmatota" = "#008EF588",
+  "Candidatus Thermoplasmatota" = "#008EF577",
+  "Candidatus Thermoplasmatota" = "#008EF566",
+  "Candidatus Thermoplasmatota" = "#008EF555",
+  "Candidatus Thermoplasmatota" = "#008EF544",
+  "Candidatus Thermoplasmatota" = "#008EF533",
+  "Candidatus Thermoplasmatota" = "#008EF522",
+  "Candidatus Saccharibacteria" = "#C35355EE",
+  "Candidatus Saccharibacteria" = "#C35355CC",
+  "Candidatus Saccharibacteria" = "#C35355AA",
+  "Candidatus Saccharibacteria" = "#C3535588",
+  "Candidatus Saccharibacteria" = "#C3535577",
+  "Candidatus Saccharibacteria" = "#C3535566",
+  "Candidatus Saccharibacteria" = "#C3535555",
+  "Candidatus Saccharibacteria" = "#C3535544",
+  "Candidatus Saccharibacteria" = "#C3535533",
+  "Candidatus Saccharibacteria" = "#C3535522",
+  "Spirochaetes" = "#965A4AEE",
+  "Spirochaetes" = "#965A4ACC",
+  "Spirochaetes" = "#965A4AAA",
+  "Spirochaetes" = "#965A4A88",
+  "Spirochaetes" = "#965A4A77",
+  "Spirochaetes" = "#965A4A66",
+  "Spirochaetes" = "#965A4A55",
+  "Spirochaetes" = "#965A4A44",
+  "Spirochaetes" = "#965A4A33",
+  "Spirochaetes" = "#965A4A22",
+  "Cyanobacteria" = "#FF7378EE",
+  "Cyanobacteria" = "#FF7378CC",
+  "Cyanobacteria" = "#FF7378AA",
+  "Cyanobacteria" = "#FF737888",
+  "Cyanobacteria" = "#FF737877",
+  "Cyanobacteria" = "#FF737866",
+  "Cyanobacteria" = "#FF737855",
+  "Cyanobacteria" = "#FF737844",
+  "Cyanobacteria" = "#FF737833",
+  "Cyanobacteria" = "#FF737822"
+)
+
+family_donut_colors <- character(11)
+x = 0
+family_colors <- function(Phylum){
+  cols <- c(Phylum)
+  for (i in cols){
+    x = x + 1
+    family_donut_colors[x] <- my_family_colors[i]
+    my_family_colors <- my_family_colors[!my_family_colors == my_family_colors[i]]
+  }
+  return(family_donut_colors)
 }
+
+# family_colors <- function(Phylum){
+#   color <- my_family_colors[Phylum]
+#   my_family_colors <- my_family_colors[!my_family_colors == my_family_colors[Phylum]]
+#   return(color)
+# }
+
+
+# family_colors(family_donut_data$Phylum)
+
 
 ## create new datasets
 #create full data set with all taxon data and metadata
@@ -80,8 +257,12 @@ full_data <- metadata %>%
   mutate(Phylum = ifelse(str_detect(str_sub(str_extract(Phylum, "p_.*"), 4), "_"),
                          str_replace(str_sub(str_extract(Phylum, "p_.*"), 4), "_", " "),
                          str_sub(str_extract(Phylum, "p_.*"), 4)),
-         Family = str_sub(str_extract(Family, "f_.*"), 4),
-         Genre = str_sub(str_extract(Genre, "g_.*"), 4),
+         Family = ifelse(str_detect(str_sub(str_extract(Family, "f_.*"), 4), "_"),
+                         str_replace(str_sub(str_extract(Family, "f_.*"), 4), "_", " "),
+                         str_sub(str_extract(Family, "f_.*"), 4)),
+         Genre = ifelse(str_detect(str_sub(str_extract(Genre, "g_.*"), 4), "_"),
+                        str_replace(str_sub(str_extract(Genre, "g_.*"), 4), "_", " "),
+                        str_sub(str_extract(Genre, "g_.*"), 4)),
          Species = str_sub(str_extract(Species, "s_.*"), 4)) %>%
   select(!c("T")) %>%
   group_by(SampleID) %>%
@@ -94,12 +275,12 @@ phylum_donut <- function(id){
   phylum_data <- full_data %>%
     filter(SampleID == as.character(id)) %>%
     filter(!is.na(Phylum)) %>%
+    filter(!str_detect(Phylum, "unclassified")) %>%
     filter(is.na(Class)) %>%
     filter(is.na(Order)) %>%
     filter(is.na(Family)) %>%
     filter(is.na(Genre)) %>%
-    filter(is.na(Species)) %>%
-    filter(!str_detect(Phylum, "_unclassified"))
+    filter(is.na(Species))
   
   fig1 <- phylum_data %>%
     plot_ly(labels = ~Phylum, values = ~Percentage,
@@ -109,7 +290,8 @@ phylum_donut <- function(id){
             hoverinfo = "label+percent",
             type='pie',
             hole=0.5,
-            marker = list(colors = ~phylum_colors(Phylum)))%>%
+            marker = list(colors = ~phylum_colors(Phylum),
+                          line = list(color = 'white', width = 1))) %>%
     add_pie(hole = 0.5) %>%
     layout(
       title = list(text = paste(n_distinct(phylum_data$Phylum), "Phylums"),
@@ -127,25 +309,32 @@ family_donut <- function(id){
   family_data <- full_data %>%
     filter(SampleID == as.character(id)) %>%
     filter(!is.na(Family)) %>%
+    filter(!str_detect(Family, "unclassified")) %>%
     filter(is.na(Genre)) %>%
-    filter(is.na(Species))%>%
-    filter(!str_detect(Family, "_unclassified"))
+    filter(is.na(Species)) %>%
+    arrange(desc(Abundance))
   
   family_donut_data <- family_data %>%
-    group_by(Family = ifelse(row_number() < 10, Family, "Autres")) %>%
+    group_by(Family = ifelse(row_number() <= 10, Family, "Autres")) %>%
     summarise(across(c(Abundance, Percentage), sum)) %>%
     ungroup() %>%
-    mutate(Phylum = ifelse(Family == "Autres", NA, family_data$Phylum))
+    arrange(desc(Abundance)) %>%
+    left_join(family_data) %>%
+    select(c("Family", "Abundance", "Percentage", "Phylum")) %>%
+    mutate(Phylum = ifelse(Family == "Autres", "Autres", Phylum))
+  
   
   return(family_donut_data %>%
            plot_ly(labels = ~Family, values = ~Percentage,
-                   text = paste(family_donut_data$Family),
+                   text = ifelse(family_donut_data$Family == "Autres", "Autres",
+                                 paste0(family_donut_data$Family," (",family_donut_data$Phylum,")")),
                    textposition = "outside",
-                   textinfo = "text",
-                   hoverinfo = "label+percent",
+                   textinfo = "label",
+                   hoverinfo = "text+percent",
                    type='pie',
                    hole=0.5,
-                   marker = list(colors = ~family_colors(Phylum)))%>%
+                   marker = list(colors = ~family_colors(Phylum),
+                                 line = list(color = 'white', width = 1)))%>%
            add_pie(hole = 0.5) %>%
            layout(title = list(text = paste(n_distinct(family_data$Family), "Familles"),
                                font = list(color = "#e2007a")),
@@ -153,18 +342,22 @@ family_donut <- function(id){
                   xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
                   yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
   )
+  
+  # return(list(family_colors(family_donut_data$Phylum)))
 }
+
+# family_donut("1")
 
 ### barchart function ###
 bar_data <- function(id) {
   phylum_data_full <- full_data %>%
     filter(!is.na(Phylum)) %>%
+    filter(!str_detect(Phylum, "unclassified")) %>%
     filter(is.na(Class)) %>%
     filter(is.na(Order)) %>%
     filter(is.na(Family)) %>%
     filter(is.na(Genre)) %>%
-    filter(is.na(Species)) %>%
-    filter(!str_detect(Phylum, "_unclassified"))
+    filter(is.na(Species))
   
   data_id <- phylum_data_full %>%
     filter(SampleID == as.character(id))
@@ -203,8 +396,8 @@ bubble_chart <- function(ID){
   genre_data <- full_data %>%
     filter(SampleID == as.character(ID)) %>%
     filter(!is.na(Genre)) %>%
-    filter(is.na(Species)) %>%
-    filter(!str_detect(Genre, "_unclassified"))
+    filter(!str_detect(Genre, "unclassified")) %>%
+    filter(is.na(Species))
   
   
   packing <- circleProgressiveLayout(genre_data$Abundance, sizetype = 'area')
