@@ -21,7 +21,7 @@ library(packcircles)
 id = 100
 
 ## load data sets
-#we want the taxon data in a form where we have the following columns: "clade_name", "SampleID", "Abundance", "Percentage"
+#we want the taxon data in a form where we have the following columns: "clade_name", "SampleID", "Abundance"
 taxon <- read.delim("taxon.txt") %>%   #read.csv() if a csv file
   na.omit() %>%
   pivot_longer(         #this function takes the selected columns and makes them rows in one column
@@ -29,8 +29,7 @@ taxon <- read.delim("taxon.txt") %>%   #read.csv() if a csv file
     names_to = "SampleID",
     values_to = "Abundance"
   ) %>%
-  mutate(SampleID = as.integer(str_sub(SampleID, 2))) %>%  #edits SampleID entries to be singular numbers i.e. "1" instead of "X1"
-  mutate(Percentage = Abundance/100) #creates Percentage column
+  mutate(SampleID = as.integer(str_sub(SampleID, 2))) #edits SampleID entries to be singular numbers i.e. "1" instead of "X1"
 
 metadata <- read.delim("metadata.txt") %>% #load in metadata, want columns: "SampleID", "Gender", "Age" AND/OR "Age_class", "Region"
   na.omit()
@@ -283,7 +282,7 @@ phylum_donut <- function(id){
     filter(is.na(Species))
   
   fig1 <- phylum_data %>%
-    plot_ly(labels = ~Phylum, values = ~Percentage,
+    plot_ly(labels = ~Phylum, values = ~Abundance,
             text = ifelse(phylum_data$Abundance < 0.5, "", paste(phylum_data$Phylum)),
             textposition = "outside",
             textinfo = "text",
@@ -316,16 +315,16 @@ family_donut <- function(id){
   
   family_donut_data <- family_data %>%
     group_by(Family = ifelse(row_number() <= 10, Family, "Autres")) %>%
-    summarise(across(c(Abundance, Percentage), sum)) %>%
+    summarise(across(Abundance, sum)) %>%
     ungroup() %>%
     arrange(desc(Abundance)) %>%
     left_join(family_data) %>%
-    select(c("Family", "Abundance", "Percentage", "Phylum")) %>%
+    select(c("Family", "Abundance", "Phylum")) %>%
     mutate(Phylum = ifelse(Family == "Autres", "Autres", Phylum))
   
   
   return(family_donut_data %>%
-           plot_ly(labels = ~Family, values = ~Percentage,
+           plot_ly(labels = ~Family, values = ~Abundance,
                    text = ifelse(family_donut_data$Family == "Autres", "Autres",
                                  paste0(family_donut_data$Family," (",family_donut_data$Phylum,")")),
                    textposition = "outside",
