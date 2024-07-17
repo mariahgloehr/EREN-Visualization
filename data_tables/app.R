@@ -87,18 +87,26 @@ genre_data <- full_data %>%
 
 data_table <- rbind(unclassified_data, phylum_data, family_data, genre_data)
 
-
 ui <- fluidPage(
     sidebarLayout(
         sidebarPanel(
-            sliderInput("bins",
-                        "Number of bins:",
-                        min = 1,
-                        max = 50,
-                        value = 30)
+          checkboxGroupInput("gender",
+                             "Genre",
+                             choices = unique(data_table$Gender),
+                             selected = c("Homme", "Femme")),
+          checkboxGroupInput("age",
+                             "Age",
+                             choices = unique(arrange(data_table, Age_class)$Age_class),
+                             selected = "30-39"),
+          checkboxGroupInput("region",
+                             "Region",
+                             choices = unique(arrange(data_table, Region)$Region),
+                             selected = "A"),
+          checkboxGroupInput("rank",
+                             "Rank",
+                             choices = unique(data_table$Rank),
+                             selected = c("Phylum", "UNCLASSIFIED"))
         ),
-
-        # Show a plot of the generated distribution
         mainPanel(
            dataTableOutput("full_table")
         )
