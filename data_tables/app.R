@@ -62,7 +62,8 @@ phylum_data <- full_data %>%
   filter(is.na(Family)) %>%
   filter(is.na(Genre)) %>%
   filter(is.na(Species)) %>%
-  select(1:5, Abundance, clade_name)
+  mutate(Microbacterie = Phylum) %>% 
+  select(1:5, Microbacterie, Abundance, clade_name)
 
 
 family_data <- full_data %>%
@@ -70,14 +71,16 @@ family_data <- full_data %>%
   filter(!str_detect(Family, "unclassified")) %>%
   filter(is.na(Genre)) %>%
   filter(is.na(Species)) %>%
-  select(1:5, Abundance, clade_name)
+  mutate(Microbacterie = Family) %>% 
+  select(1:5, Microbacterie, Abundance, clade_name)
 
 
 genre_data <- full_data %>%
   filter(!is.na(Genre)) %>%
   filter(!str_detect(Genre, "unclassified")) %>%
   filter(is.na(Species)) %>%
-  select(1:5, Abundance, clade_name)
+  mutate(Microbacterie = Genre) %>% 
+  select(1:5, Microbacterie, Abundance, clade_name)
 
 data_table <- rbind(unclassified_data, phylum_data, family_data, genre_data)
 
