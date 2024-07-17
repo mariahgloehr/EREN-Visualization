@@ -115,9 +115,21 @@ ui <- fluidPage(
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
+  
+  table_data <- reactive(
+    data_table %>%
+      filter(Gender %in% input$gender) %>%
+      filter(Age_class %in% input$age) %>%
+      filter(Region %in% input$region) %>%
+      filter(Rank %in% input$rank) %>%
+      group_by(Microbacterie) %>%
+      mutate(Moyenne = mean(Abundance)) %>%
+      ungroup() %>%
+      select(!Abundance)
+  )
 
     output$full_table <- renderDataTable({
-      full_data
+      unique(select(table_data(), Microbacterie, Moyenne, Rank, Prevalence, clade_name))[,c(1,3,5,2,4)]
     })
 }
 
