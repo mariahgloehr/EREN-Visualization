@@ -1,0 +1,96 @@
+#
+# This is a Shiny web application. You can run the application by clicking
+# the 'Run App' button above.
+#
+# Find out more about building applications with Shiny here:
+#
+#    http://shiny.rstudio.com/
+#
+
+library(shiny)
+library(tidyverse)
+library(DT)
+
+## assign ID
+id = 100
+
+## load data sets
+#we want the taxon data in a form where we have the following columns: "clade_name", "SampleID", "Abundance"
+taxon <- read.delim("taxon.txt") %>%   #read.csv() if a csv file
+  na.omit() %>%
+  pivot_longer(         #this function takes the selected columns and makes them rows in one column
+    cols = X1:X103,     #change: select all the SampleID columns
+    names_to = "SampleID",
+    values_to = "Abundance"
+  ) %>%
+  mutate(SampleID = as.integer(str_sub(SampleID, 2))) #edits SampleID entries to be singular numbers i.e. "1" instead of "X1"
+
+metadata <- read.delim("metadata.txt") %>% #load in metadata, want columns: "SampleID", "Gender", "Age" AND/OR "Age_class", "Region"
+  na.omit()
+
+## create new datasets
+#create full data set with all taxon data and metadata
+full_data <- metadata %>%
+  full_join(taxon, by = "SampleID") %>% #join taxon data and metadata by aligning SampleIDs
+  mutate(Gender = ifelse(Gender == 1, "Homme", "Femme")) %>% #for labels, in Gender column edit "0" -> "Femme" etc
+  mutate(full_name = clade_name) %>%
+  separate_wider_delim(col = full_name,
+                       delim = "|",
+                       names = c("Kingdom", "Phylum", "Class", "Order", "Family", "Genre", "Species", "T"),
+                       too_few = "align_start") %>%
+  mutate(Phylum = ifelse(str_detect(str_sub(str_extract(Phylum, "p_.*"), 4), "_"),
+                         str_replace(str_sub(str_extract(Phylum, "p_.*"), 4), "_", " "),
+                         str_sub(str_extract(Phylum, "p_.*"), 4)),
+         Family = ifelse(str_detect(str_sub(str_extract(Family, "f_.*"), 4), "_"),
+                         str_replace(str_sub(str_extract(Family, "f_.*"), 4), "_", " "),
+                         str_sub(str_extract(Family, "f_.*"), 4)),
+         Genre = ifelse(str_detect(str_sub(str_extract(Genre, "g_.*"), 4), "_"),
+                        str_replace(str_sub(str_extract(Genre, "g_.*"), 4), "_", " "),
+                        str_sub(str_extract(Genre, "g_.*"), 4)),
+         Species = str_sub(str_extract(Species, "s_.*"), 4)) %>%
+  select(!c("T")) %>%
+  group_by(SampleID) %>%
+  arrange(desc(Abundance), .by_group = TRUE) %>%
+  filter(Abundance != 0) %>%
+  ungroup()
+
+
+ui <- fluidPage(
+
+    # Application title
+    titlePanel("Old Faithful Geyser Data"),
+
+    # Sidebar with a slider input for number of bins 
+    sidebarLayout(
+        sidebarPanel(
+            sliderInput("bins",
+                        "Number of bins:",
+                        min = 1,
+                        max = 50,
+                        value = 30)
+        ),
+
+        # Show a plot of the generated distribution
+        mainPanel(
+           plotOutput("distPlot")
+        )
+    )
+)
+
+# Define server logic required to draw a histogram
+server <- function(input, output) {
+
+    output$distPlot <- renderPlot({
+        # generate bins based on input$bins from ui.R
+        x    <- faithful[, 2]
+        bins <- seq(min(x), max(x), length.out = input$bins + 1)
+
+        # draw the histogram with the specified number of bins
+        hist(x, breaks = bins, col = 'darkgray', border = 'white',
+             xlab = 'Waiting time to next eruption (in mins)',
+             main = 'Histogram of waiting times')
+    })
+}
+
+# Run the application 
+shinyApp(ui = ui, server = server)
