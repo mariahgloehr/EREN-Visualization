@@ -54,6 +54,33 @@ full_data <- metadata %>%
   filter(Abundance != 0) %>%
   ungroup()
 
+phylum_data <- full_data %>%
+  filter(!is.na(Phylum)) %>%
+  filter(!str_detect(Phylum, "unclassified")) %>%
+  filter(is.na(Class)) %>%
+  filter(is.na(Order)) %>%
+  filter(is.na(Family)) %>%
+  filter(is.na(Genre)) %>%
+  filter(is.na(Species)) %>%
+  select(1:5, Abundance, clade_name)
+
+
+family_data <- full_data %>%
+  filter(!is.na(Family)) %>%
+  filter(!str_detect(Family, "unclassified")) %>%
+  filter(is.na(Genre)) %>%
+  filter(is.na(Species)) %>%
+  select(1:5, Abundance, clade_name)
+
+
+genre_data <- full_data %>%
+  filter(!is.na(Genre)) %>%
+  filter(!str_detect(Genre, "unclassified")) %>%
+  filter(is.na(Species)) %>%
+  select(1:5, Abundance, clade_name)
+
+data_table <- rbind(unclassified_data, phylum_data, family_data, genre_data)
+
 
 ui <- fluidPage(
     sidebarLayout(
