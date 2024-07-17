@@ -533,7 +533,8 @@ ui <- fluidPage(
     background-color: #2C73D255;
     width:800px;
     margin:auto;
-    padding:10px
+    padding:10px;
+    margin-bottom:10px
     "
   ),
 )
