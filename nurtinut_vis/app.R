@@ -18,7 +18,7 @@ library(packcircles)
 
 
 ## assign ID
-id = 100
+id = 1
 
 ## load data sets
 #we want the taxon data in a form where we have the following columns: "clade_name", "SampleID", "Abundance"
@@ -55,6 +55,7 @@ my_phylum_colors <- c(
   "Cyanobacteria" = "#FF7378"
 )
 
+##function for generating phylum donut chart colors
 phylum_colors <- function(Phylum){
   cols <- c(Phylum)
   my_phylum_colors[cols]
@@ -222,6 +223,7 @@ my_family_colors <- c(
   "Cyanobacteria" = "#FF737822"
 )
 
+##function for generating family donut chart gradient colors (for 11 pieces)
 family_donut_colors <- character(11)
 x = 0
 family_colors <- function(Phylum){
@@ -234,25 +236,18 @@ family_colors <- function(Phylum){
   return(family_donut_colors)
 }
 
-# family_colors <- function(Phylum){
-#   color <- my_family_colors[Phylum]
-#   my_family_colors <- my_family_colors[!my_family_colors == my_family_colors[Phylum]]
-#   return(color)
-# }
-
-
-# family_colors(family_donut_data$Phylum)
-
 
 ## create new datasets
 #create full data set with all taxon data and metadata
 full_data <- metadata %>%
   full_join(taxon, by = "SampleID") %>% #join taxon data and metadata by aligning SampleIDs
   mutate(Gender = ifelse(Gender == 1, "Homme", "Femme")) %>% #for labels, in Gender column edit "0" -> "Femme" etc
+  # split clade_name into multiple rank columns, seperating the string at every |
   separate_wider_delim(col = clade_name,
                        delim = "|",
                        names = c("Kingdom", "Phylum", "Class", "Order", "Family", "Genre", "Species", "T"),
                        too_few = "align_start") %>%
+  #edit names of each microbacteria, get rid of every p_, f_ etc
   mutate(Phylum = ifelse(str_detect(str_sub(str_extract(Phylum, "p_.*"), 4), "_"),
                          str_replace(str_sub(str_extract(Phylum, "p_.*"), 4), "_", " "),
                          str_sub(str_extract(Phylum, "p_.*"), 4)),
@@ -268,54 +263,82 @@ full_data <- metadata %>%
   arrange(desc(Abundance), .by_group = TRUE) %>%
   filter(Abundance != 0)
 
+phylum_data_full <- full_data %>%
+  filter(!is.na(Phylum)) %>%
+  filter(!str_detect(Phylum, "unclassified")) %>%
+  #only select rows where the only information is Phylum
+  filter(is.na(Class)) %>%
+  filter(is.na(Order)) %>%
+  filter(is.na(Family)) %>%
+  filter(is.na(Genre)) %>%
+  filter(is.na(Species))
+
+family_data_full <- full_data %>%
+  filter(!is.na(Family)) %>%
+  filter(!str_detect(Family, "unclassified")) %>%
+  filter(is.na(Genre)) %>%
+  filter(is.na(Species)) %>%
+  arrange(desc(Abundance))
+
+genre_data_full <- full_data %>%
+  filter(!is.na(Genre)) %>%
+  filter(!str_detect(Genre, "unclassified")) %>%
+  filter(is.na(Species))
+
 ### chart functions ###
-#phylum donut function
+#create function phylum_donut() to generate phylum donut chart for selected ID
 phylum_donut <- function(id){
-  phylum_data <- full_data %>%
-    filter(SampleID == as.character(id)) %>%
-    filter(!is.na(Phylum)) %>%
-    filter(!str_detect(Phylum, "unclassified")) %>%
-    filter(is.na(Class)) %>%
-    filter(is.na(Order)) %>%
-    filter(is.na(Family)) %>%
-    filter(is.na(Genre)) %>%
-    filter(is.na(Species))
+  phylum_data <- phylum_data_full %>%
+    #filter dataframe for just selected SampleID
+    filter(SampleID == as.character(id))
+  # %>%
+  #   filter(!is.na(Phylum)) %>%
+  #   filter(!str_detect(Phylum, "unclassified")) %>%
+  #   #only select rows where the only information is Phylum
+  #   filter(is.na(Class)) %>%
+  #   filter(is.na(Order)) %>%
+  #   filter(is.na(Family)) %>%
+  #   filter(is.na(Genre)) %>%
+  #   filter(is.na(Species))
   
+  #donut plot
   fig1 <- phylum_data %>%
     plot_ly(labels = ~Phylum, values = ~Abundance,
-            text = ifelse(phylum_data$Abundance < 0.5, "", paste(phylum_data$Phylum)),
+            text = ifelse(phylum_data$Abundance < 0.5, "", paste(phylum_data$Phylum)), #only show label if piece big enough, text displayed is in paste()
             textposition = "outside",
             textinfo = "text",
             hoverinfo = "label+percent",
             type='pie',
             hole=0.5,
-            marker = list(colors = ~phylum_colors(Phylum),
+            marker = list(colors = ~phylum_colors(Phylum), #use phylum_colors function defined above to get colors
                           line = list(color = 'white', width = 1))) %>%
     add_pie(hole = 0.5) %>%
     layout(
-      title = list(text = paste(n_distinct(phylum_data$Phylum), "Phylums"),
+      title = list(text = "Vos Phylums", #get total number using n_distinct
                    font = list(color = "#e2007a", weight = "bold")),
       showlegend = FALSE,
       xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
       yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
   
+  
   return(fig1
   )
 }
 
-##family donut function
+##create family donut chart function
 family_donut <- function(id){
-  family_data <- full_data %>%
-    filter(SampleID == as.character(id)) %>%
-    filter(!is.na(Family)) %>%
-    filter(!str_detect(Family, "unclassified")) %>%
-    filter(is.na(Genre)) %>%
-    filter(is.na(Species)) %>%
-    arrange(desc(Abundance))
+  family_data <- family_data_full %>%
+    filter(SampleID == as.character(id))
+  # %>%
+  #   filter(!is.na(Family)) %>%
+  #   filter(!str_detect(Family, "unclassified")) %>%
+  #   filter(is.na(Genre)) %>%
+  #   filter(is.na(Species)) %>%
+  #   arrange(desc(Abundance))
   
   family_donut_data <- family_data %>%
-    group_by(Family = ifelse(row_number() <= 10, Family, "Autres")) %>%
-    summarise(across(Abundance, sum)) %>%
+    group_by(Family = ifelse(row_number() <= 10, Family, "Autres")) %>% #show top 10 family, otherwise "Other"
+    summarise(across(Abundance, sum)) %>% #sum rows to get total abundance of "Others"
     ungroup() %>%
     arrange(desc(Abundance)) %>%
     left_join(family_data) %>%
@@ -332,41 +355,31 @@ family_donut <- function(id){
                    hoverinfo = "text+percent",
                    type='pie',
                    hole=0.5,
-                   marker = list(colors = ~family_colors(Phylum),
+                   marker = list(colors = ~family_colors(Phylum), #use previously defined function family_colors() to get colors
                                  line = list(color = 'white', width = 1)))%>%
            add_pie(hole = 0.5) %>%
-           layout(title = list(text = paste(n_distinct(family_data$Family), "Familles"),
+           layout(title = list(text = "Vos Familles",
                                font = list(color = "#e2007a")),
                   showlegend = FALSE,
                   xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
                   yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
   )
-  
-  # return(list(family_colors(family_donut_data$Phylum)))
 }
-
-# family_donut("1")
 
 ### barchart function ###
 bar_data <- function(id) {
-  phylum_data_full <- full_data %>%
-    filter(!is.na(Phylum)) %>%
-    filter(!str_detect(Phylum, "unclassified")) %>%
-    filter(is.na(Class)) %>%
-    filter(is.na(Order)) %>%
-    filter(is.na(Family)) %>%
-    filter(is.na(Genre)) %>%
-    filter(is.na(Species))
-  
+  #filter data to just selected participant (id)
   data_id <- phylum_data_full %>%
     filter(SampleID == as.character(id))
   
+  #create new dataset that shows total abundance of phylums in total population
   phylum_data_pop <- phylum_data_full %>%
     group_by(Phylum) %>%
-    summarise(across(Abundance, sum)) %>%
-    mutate(Abundance = (Abundance/sum(Abundance))*100) %>%
-    mutate(Group = "Population Totale")
+    summarise(across(Abundance, sum)) %>% #sum abundance of each phylum
+    mutate(Abundance = (Abundance/sum(Abundance))*100) %>% #restandardize abundance to be percentage of classified microbacteria present in dataset
+    mutate(Group = "Population Totale") #create group column for graphing all grouping
   
+  #create new dataset that shows total abundance of phylums in participant
   phylum_data_ID <- phylum_data_full %>%
     filter(SampleID == as.character(id)) %>%
     group_by(Phylum) %>%
@@ -374,30 +387,32 @@ bar_data <- function(id) {
     mutate(Abundance = (Abundance/sum(Abundance))*100) %>%
     mutate(Group = "Vous")
   
+  #bind total population and participant datasets into one dataset
   phylum_data_bar <- rbind(phylum_data_ID, phylum_data_pop)
   
-  for (group in c("Gender", "Age_class", "Region")) {
+  #using iteration, create new datasets that show total abundance of phylums
+  #within the participant's gender, age, and region group
+  for (group in c("Gender", "Age_class", "Region")) {        
     phylum_data_bar <- phylum_data_full %>%
-      filter_at(group, ~ . == data_id[[group]][[1]]) %>%
+      filter_at(group, ~ . == data_id[[group]][[1]]) %>% #filter for Gender, age_class, or region
       group_by(Phylum) %>%
-      summarise(across(Abundance, sum)) %>%
-      mutate(Abundance = (Abundance/sum(Abundance))*100) %>%
-      mutate(Group = data_id[[group]][[1]]) %>%
-      rbind(phylum_data_bar)
+      summarise(across(Abundance, sum)) %>% #sum abundance of each phylum
+      mutate(Abundance = (Abundance/sum(Abundance))*100) %>% #restandardize
+      mutate(Group = data_id[[group]][[1]]) %>% #add group title, i.e. "Homme" or "50-59"
+      rbind(phylum_data_bar) #bind each dataset to the full bar dataset created above
+    #in order to plot each grouping as a bar together
   }
   return(phylum_data_bar %>%
+           #manually set order that columns should go in: participant, total population, Gender, Age, Region
            mutate(Group = fct_relevel(Group, c("Vous", "Population Totale",
                                                data_id[["Gender"]][[1]], data_id[["Age_class"]][[1]], data_id[["Region"]][[1]]))))
+  
 }
 
 ## bubble chart function
 bubble_chart <- function(ID){
-  genre_data <- full_data %>%
-    filter(SampleID == as.character(ID)) %>%
-    filter(!is.na(Genre)) %>%
-    filter(!str_detect(Genre, "unclassified")) %>%
-    filter(is.na(Species))
-  
+  genre_data <- genre_data_full %>%
+    filter(SampleID == as.character(ID))
   
   packing <- circleProgressiveLayout(genre_data$Abundance, sizetype = 'area')
   bubble_data = cbind(genre_data, packing)
@@ -423,7 +438,7 @@ bubble_chart <- function(ID){
           panel.grid.minor=element_blank(),plot.background=element_blank(),
           plot.title = element_text(hjust = 0.5, colour = "#e2007a")) +
     coord_equal() +
-    labs(title = paste(n_distinct(plotcard$Genre), "Genres"))
+    labs(title = "Vos Genres")
   
   return(ggplotly(bubble, tooltip = "text", width = 1000, height = 600) %>%
            style(hoverinfo = "none", traces = 1)
@@ -446,6 +461,37 @@ ui <- fluidPage(
                         margin-top: -20px;
                         padding-top: 10px;
                         padding-bottom: 10px;'})),
+  p(
+    "Cher(e) Nutrinaute,",
+    br("Merci de votre participation à l'étude NutriNet-Santé ! Pour démontrer notre
+    reconnaissance, on vous présente une brève exploration de votre microbiote intestinal unique."),
+    style = "font-size: 24px;
+    text-align:center"
+  ),
+  p(
+    strong("N.B. :", style = "color:#e2007a"), "Chaque personne a une composition microbienne unique.
+    Cette variation est normale et saine. Ce rapport est dans l'esprit de curiosité et d'amusement,",
+    strong("il ne s’agit pas d’un avis médical.", style = "color:#e2007a"),
+    style = "font-size: 15px;
+    text-align:center;
+    padding-bottom:10px"
+  ),
+  p(
+    "Votre échantillon a révélé un microbiote intestinal diversifié
+    composé de",
+    strong(n_distinct(filter(full_data, SampleID == as.character(id))$Species), "espèces",
+           style = "color:#e2007a"),
+    "classifiées de microbactéries. De plus, ces microbactéries appartiennent à",
+    strong(n_distinct(filter(phylum_data_full, SampleID == as.character(id))$Phylum), "phylums",
+           style = "color:#e2007a"),
+    "et", strong(n_distinct(filter(family_data_full, SampleID == as.character(id))$Family), "familles",
+                 style = "color:#e2007a"),
+    ".",
+    style = "font-size: 17px;
+    text-align:center;
+    background-color: #75b70b55;
+    padding:10px"
+  ),
   fluidRow(
     column(6, plotlyOutput("phylum_donut"),
            align = "center"
@@ -453,12 +499,43 @@ ui <- fluidPage(
     column(6, plotlyOutput("family_donut"),
            align = "center"
     )),
+  p(
+    "Vous avez également",
+    strong(n_distinct(filter(genre_data_full, SampleID == as.character(id))$Genre), "genres",
+           style = "color:#e2007a"),
+    style = "font-size: 17px;
+    text-align:center;
+    background-color: #75b70b55;
+    padding:10px"
+  ),
   fluidRow(align="center",
            plotlyOutput("bubble_chart", height = "50%")
   ),
+  p(
+    "Enfin, cet histogramme suivant compare votre composition de phylums contre celle
+    de milliers d'autres nutrinautes. Les barres mises en regard représentent la composition moyenne
+    de tous les nutrinautes ainsi que les nutrinautes appartenant à votre sexe, âge et région.
+    Pour réitérer, un écart par rapport à ces moyennes est normal en raison de
+    la variation naturelle du microbiote intestinal.",
+    style = "font-size: 17px;
+    text-align:center;
+    background-color: #75b70b55;
+    padding:10px"
+  ),
   fluidRow(align="center",
-           plotlyOutput("barplot")
-  )
+           plotlyOutput("barplot", height = "50%")
+  ),
+  p(
+    strong("Notice technique :", style = "font-size: 17px"),
+    br("BLAH BLAH"),
+    style = "font-size: 12px;
+    text-align:center;
+    background-color: #2C73D255;
+    width:800px;
+    margin:auto;
+    padding:10px
+    "
+  ),
 )
 
 
@@ -483,13 +560,13 @@ server <- function(input, output) {
                  text = paste(Phylum, "\n", str_sub(Abundance, 1, 4), "%"))) +
       geom_bar(position = "fill", stat = "identity") +
       scale_fill_manual(values = phylum_colors(bar_data(id)$Phylum)) +
-      labs(title = paste("Vos Phylums vs ___ Nutrinauts")) +
+      labs(title = paste("Vos Phylums vs Les Autres Nutrinauts")) +
       theme_classic() +
       theme(plot.title = element_text(hjust = 0.5, colour = "#e2007a"),
             axis.title.x=element_blank(),
             axis.title.y=element_blank())
     
-    ggplotly(all_bars, tooltip = "text", width = 1100, height = 700)
+    ggplotly(all_bars, tooltip = "text", height = 700, width = 1100)
   })
 }
 
