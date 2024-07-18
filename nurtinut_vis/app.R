@@ -295,37 +295,33 @@ genre_data_full <- full_data %>%
 ### chart functions ###
 #create function phylum_donut() to generate phylum donut chart for selected ID
 phylum_donut <- function(id){
+  #filter full phylum dataset for just the information of the selected SampleID
   phylum_data <- phylum_data_full %>%
-    #filter dataframe for just selected SampleID
     filter(SampleID == as.character(id))
-  # %>%
-  #   filter(!is.na(Phylum)) %>%
-  #   filter(!str_detect(Phylum, "unclassified")) %>%
-  #   #only select rows where the only information is Phylum
-  #   filter(is.na(Class)) %>%
-  #   filter(is.na(Order)) %>%
-  #   filter(is.na(Family)) %>%
-  #   filter(is.na(Genre)) %>%
-  #   filter(is.na(Species))
   
-  #donut plot
+  #create donut plot
   fig1 <- phylum_data %>%
     plot_ly(labels = ~Phylum, values = ~Abundance,
-            text = ifelse(phylum_data$Abundance < 0.5, "", paste(phylum_data$Phylum)), #only show label if piece big enough, text displayed is in paste()
+            # "text" is the label for each piece of the donut
+            # ifelse() function so the label is only showed if piece big enough, text displayed is in paste()
+            text = ifelse(phylum_data$Abundance < 0.5, "", paste(phylum_data$Phylum)),
             textposition = "outside",
             textinfo = "text",
-            hoverinfo = "label+percent",
+            hoverinfo = "label+percent", #interactive information
             type='pie',
-            hole=0.5,
-            marker = list(colors = ~phylum_colors(Phylum), #use phylum_colors function defined above to get colors
+            hole=0.5, #can change size of center donut hole
+            #marker information deals with aesthetics, color of pieces and lines between pieces
+            marker = list(colors = ~phylum_colors(Phylum), 
+                          #use phylum_colors function defined above to get colors
+                          #generate white lines between pieces
                           line = list(color = 'white', width = 1))) %>%
-    add_pie(hole = 0.5) %>%
+    #layout information includes full graph aesthics
     layout(
-      title = list(text = "Vos Phylums", #get total number using n_distinct
+      title = list(text = "Vos Phylums", #title text, color, bold
                    font = list(color = "#e2007a", weight = "bold")),
       showlegend = FALSE,
-      xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
-      yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+      xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE), #blank graph bankground
+      yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE)) #no legend, lines etc
   
   
   return(fig1
@@ -336,25 +332,21 @@ phylum_donut <- function(id){
 family_donut <- function(id){
   family_data <- family_data_full %>%
     filter(SampleID == as.character(id))
-  # %>%
-  #   filter(!is.na(Family)) %>%
-  #   filter(!str_detect(Family, "unclassified")) %>%
-  #   filter(is.na(Genre)) %>%
-  #   filter(is.na(Species)) %>%
-  #   arrange(desc(Abundance))
   
   family_donut_data <- family_data %>%
     group_by(Family = ifelse(row_number() <= 10, Family, "Autres")) %>% #show top 10 family, otherwise "Other"
     summarise(across(Abundance, sum)) %>% #sum rows to get total abundance of "Others"
     ungroup() %>%
     arrange(desc(Abundance)) %>%
-    left_join(family_data) %>%
+    left_join(family_data) %>% #summarise function gets rid of below columns,
+                                #so join with family_data to get this information back
     select(c("Family", "Abundance", "Phylum")) %>%
     mutate(Phylum = ifelse(Family == "Autres", "Autres", Phylum))
   
-  
+  #create family donut
   return(family_donut_data %>%
            plot_ly(labels = ~Family, values = ~Abundance,
+                   # text here is the hoverinfo, include family and phylum for clarity of the coloring
                    text = ifelse(family_donut_data$Family == "Autres", "Autres",
                                  paste0(family_donut_data$Family," (",family_donut_data$Phylum,")")),
                    textposition = "outside",
@@ -364,7 +356,6 @@ family_donut <- function(id){
                    hole=0.5,
                    marker = list(colors = ~family_colors(Phylum), #use previously defined function family_colors() to get colors
                                  line = list(color = 'white', width = 1)))%>%
-           add_pie(hole = 0.5) %>%
            layout(title = list(text = "Vos Familles",
                                font = list(color = "#e2007a")),
                   showlegend = FALSE,
