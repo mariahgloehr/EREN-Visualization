@@ -55,9 +55,9 @@ full_data <- metadata %>%
 
 unclassified_data <- full_data %>%
   filter(Kingdom == 'UNCLASSIFIED') %>%
-  mutate(Microbacterie == Kingdom) %>%
+  mutate(Microorganisme = Kingdom) %>%
   mutate(Rank = "UNCLASSIFIED") %>%
-  select(1:5, Microbacterie, Abundance, Rank, clade_name)
+  select(1:5, Microorganisme, Abundance, Rank, clade_name)
 
 phylum_data <- full_data %>%
   filter(!is.na(Phylum)) %>%
@@ -67,9 +67,9 @@ phylum_data <- full_data %>%
   filter(is.na(Family)) %>%
   filter(is.na(Genre)) %>%
   filter(is.na(Species)) %>%
-  mutate(Microbacterie = Phylum) %>%
+  mutate(Microorganisme = Phylum) %>%
   mutate(Rank = 'Phylum') %>%
-  select(1:5, Rank, Microbacterie, Abundance, clade_name)
+  select(1:5, Rank, Microorganisme, Abundance, clade_name)
 
 
 family_data <- full_data %>%
@@ -77,75 +77,88 @@ family_data <- full_data %>%
   filter(!str_detect(Family, "unclassified")) %>%
   filter(is.na(Genre)) %>%
   filter(is.na(Species)) %>%
-  mutate(Microbacterie = Family) %>% 
+  mutate(Microorganisme = Family) %>%
   mutate(Rank = 'Family') %>%
-  select(1:5, Rank, Microbacterie, Abundance, clade_name)
+  select(1:5, Rank, Microorganisme, Abundance, clade_name)
 
 
 genre_data <- full_data %>%
   filter(!is.na(Genre)) %>%
   filter(!str_detect(Genre, "unclassified")) %>%
   filter(is.na(Species)) %>%
-  mutate(Microbacterie = Genre) %>% 
+  mutate(Microorganisme = Genre) %>%
   mutate(Rank = 'Genre') %>%
-  select(1:5, Rank, Microbacterie, Abundance, clade_name)
+  select(1:5, Rank, Microorganisme, Abundance, clade_name)
 
 data_table <- rbind(unclassified_data, phylum_data, family_data, genre_data)
 
 ui <- fluidPage(
-    sidebarLayout(
-        sidebarPanel(
-          checkboxGroupInput("gender",
-                             "Genre",
-                             choices = unique(data_table$Gender),
-                             selected = c("Homme", "Femme")),
-          checkboxGroupInput("age",
-                             "Age",
-                             choices = unique(arrange(data_table, Age_class)$Age_class),
-                             selected = "30-39"),
-          checkboxGroupInput("region",
-                             "Region",
-                             choices = unique(arrange(data_table, Region)$Region),
-                             selected = "A"),
-          checkboxGroupInput("rank",
-                             "Rank",
-                             choices = unique(data_table$Rank),
-                             selected = c("Phylum", "UNCLASSIFIED"))
+  sidebarLayout(
+    sidebarPanel(
+      checkboxGroupInput("gender",
+                         "Genre",
+                         choices = unique(data_table$Gender),
+                         selected = c("Homme", "Femme")),
+      checkboxGroupInput("age",
+                         "Age",
+                         choices = unique(arrange(data_table, Age_class)$Age_class),
+                         selected = "30-39"),
+      checkboxGroupInput("region",
+                         "Region",
+                         choices = unique(arrange(data_table, Region)$Region),
+                         selected = "A")
+    ),
+    mainPanel(
+      span(textOutput("total"), style = "color:black;font-size:30px;font-family:arial;font-weight:bold"),
+      tabsetPanel(
+        tabPanel("Phylum",
+                 dataTableOutput("phylum_table")
         ),
-        mainPanel(
-          span(textOutput("total", style = "color:black; font-size:30px;
-                          font-family:arial; font-weight:bold")),
-           dataTableOutput("full_table")
-        )
+        tabPanel("Famille",
+                 dataTableOutput("family_table")),
+        tabPanel("Genre",
+                 dataTableOutput("genre_table"))
+      )
     )
+  )
 )
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
-  
+  options(digits=4)
   table_data <- reactive(
     data_table %>%
       filter(Gender %in% input$gender) %>%
       filter(Age_class %in% input$age) %>%
       filter(Region %in% input$region) %>%
-      filter(Rank %in% input$rank) %>%
-      group_by(Microbacterie) %>%
-      mutate(Moyenne = mean(Abundance)) %>%
+      group_by(Microorganisme) %>%
+      mutate(Moyenne = sprintf(mean(Abundance), fmt = '%.6f')) %>%
       mutate(Prevalence = n()) %>%
       ungroup() %>%
-      mutate(Prevalence = paste0(Prevalence, "/", n_distinct(SampleID), 
-                                 "(", (Prevalence/n_distinct(SampleID))*100, "%)")) %>%
+      mutate(Prevalence = paste0(Prevalence, "/", n_distinct(SampleID),
+                                 "(", sprintf((Prevalence/n_distinct(SampleID))*100, fmt = '%.3f'), "%)")) %>%
       select(!Abundance)
   )
-
-    output$total <- renderText({
-      paste(n_distinct(table_data()$SampleID), "Participants")
-    })  
   
-    output$full_table <- renderDataTable({
-      unique(select(table_data(), Microbacterie, Moyenne, Rank, Prevalence, clade_name))[,c(1,3,5,2,4)]
-    })
+  output$total <- renderText({
+    paste(n_distinct(table_data()$SampleID), "Participants")
+  })  
+  
+  output$phylum_table <- renderDataTable({
+    unique(select(filter(table_data(), Rank %in% c("Phylum", "UNCLASSIFIED")),
+                  Microorganisme, Moyenne, Prevalence, clade_name))[,c(1,4,2,3)]
+  })
+  
+  output$family_table <- renderDataTable({
+    unique(select(filter(table_data(), Rank %in% c("Family", "UNCLASSIFIED")),
+                  Microorganisme, Moyenne, Prevalence, clade_name))[,c(1,4,2,3)]
+  })
+  
+  output$genre_table <- renderDataTable({
+    unique(select(filter(table_data(), Rank %in% c("Genre", "UNCLASSIFIED")),
+                  Microorganisme, Moyenne, Prevalence, clade_name))[,c(1,4,2,3)]
+  })
 }
 
-# Run the application 
+# Run the application
 shinyApp(ui = ui, server = server)
