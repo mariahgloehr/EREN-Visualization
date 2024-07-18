@@ -447,29 +447,37 @@ bubble_chart <- function(ID){
 
 # Define UI  
 ui <- fluidPage(
+  # image file must be within a "www" folder within the folder that contains the app
+  # can change pixel width and height of the image
+  # code within paste() is the displayed text
+  # code after "style = " changes aesthetic of the text, all these can be changed
+  # margins and padding set so the text box extends across the entire screen
   titlePanel(h1(img(src = "logo-nutrinet.jpg",
-                    width = "130px",
+                    width = "130px",          
                     height = "130px"),
                 paste("Votre Microbiote"),
-                align = "center",
+                align = "center",        
                 style={'font-size: 40px;
                     font-style: bold;
-                    color: #e51a87;
-                    background-color:#9ecd54;
+                    color: #e51a87;              
+                    background-color:#9ecd54;        
                         margin-left: -15px;
                         margin-right: -15px;
                         margin-top: -20px;
                         padding-top: 10px;
                         padding-bottom: 10px;'})),
   ## p() creates a paragraph, text is in quotations, br() indicates a line break
+  ## code after "style = " changes aesthetic of the text and paragraph, all these can be changed
   p(
     "Cher(e) Nutrinaute,",
     br("Merci de votre participation à l'étude NutriNet-Santé ! Pour démontrer notre
     reconnaissance, on vous présente une brève exploration de votre microbiote intestinal unique."),
-    style = "font-size: 24px; ## can change size of text
-    text-align:center"  ## can change alingment of text
+    style = "font-size: 24px;
+    text-align:center"
   ),
+  
   ## text within strong() will be bolded, can change color
+  ## padding-bottom controls size of space between text box and surrounding objects
   p(
     strong("N.B. :", style = "color:#e2007a"), "Chaque personne a une composition microbienne unique.
     Cette variation est normale et saine. Ce rapport est dans l'esprit de curiosité et d'amusement,",
@@ -478,12 +486,12 @@ ui <- fluidPage(
     text-align:center;
     padding-bottom:10px" # can change space between this text box and following text box
   ),
+  ## n_distinct() calculates number of distinct species/families/phylums within the dataframe
   p(
     "Votre échantillon a révélé un microbiote intestinal diversifié
     composé de",
     strong(n_distinct(filter(full_data, SampleID == as.character(id))$Species), "espèces",
            style = "color:#e2007a"),
-    ## n_distinct() calculates number of distinct species within this dataframe
     "classifiées de microbactéries. De plus, ces microbactéries appartiennent à",
     strong(n_distinct(filter(phylum_data_full, SampleID == as.character(id))$Phylum), "phylums",
            style = "color:#e2007a"),
@@ -494,7 +502,7 @@ ui <- fluidPage(
     br("P.S. tous les graphiques sont interactifs, veuillez explorer !"),
     style = "font-size: 17px;
     text-align:center;
-    background-color: #75b70b55; ## can change background color
+    background-color: #75b70b55;
     padding:10px"
   ),
   fluidRow(
@@ -540,14 +548,13 @@ ui <- fluidPage(
     style = "font-size: 12px;
     text-align:center;
     background-color: #2C73D255;
-    width:800px;  # can change width
-    margin:auto;  # do not change margin:auto
+    width:800px;
+    margin:auto;
     padding:10px;
     margin-bottom:10px
     "
   ),
 )
-
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
