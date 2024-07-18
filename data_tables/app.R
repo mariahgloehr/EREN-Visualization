@@ -11,9 +11,6 @@ library(shiny)
 library(tidyverse)
 library(DT)
 
-## assign ID
-id = 100
-
 ## load data sets
 #we want the taxon data in a form where we have the following columns: "clade_name", "SampleID", "Abundance"
 taxon <- read.delim("taxon.txt") %>%   #read.csv() if a csv file
