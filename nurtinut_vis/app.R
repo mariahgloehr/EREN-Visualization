@@ -366,7 +366,7 @@ family_donut <- function(id){
 
 ### barchart function ###
 bar_data <- function(id) {
-  #filter data to just selected participant (id)
+  #filter full phylum data to just selected participant (id)
   data_id <- phylum_data_full %>%
     filter(SampleID == as.character(id))
   
@@ -375,7 +375,7 @@ bar_data <- function(id) {
     group_by(Phylum) %>%
     summarise(across(Abundance, sum)) %>% #sum abundance of each phylum
     mutate(Abundance = (Abundance/sum(Abundance))*100) %>% #restandardize abundance to be percentage of classified microbacteria present in dataset
-    mutate(Group = "Population Totale") #create group column for graphing all grouping
+    mutate(Group = "Population Totale") #create group column for graphing by grouping
   
   #create new dataset that shows total abundance of phylums in participant
   phylum_data_ID <- phylum_data_full %>%
@@ -407,8 +407,9 @@ bar_data <- function(id) {
   
 }
 
-## bubble chart function
+## bubble chart function ##
 bubble_chart <- function(ID){
+  #filter full genre data to just selected participant (ID)
   genre_data <- genre_data_full %>%
     filter(SampleID == as.character(ID))
   
@@ -503,6 +504,7 @@ ui <- fluidPage(
     background-color: #75b70b55;
     padding:10px"
   ),
+  #creates new row with two equal sections for the donut chqrts
   fluidRow(
     column(6, plotlyOutput("phylum_donut"),
            align = "center"
@@ -521,6 +523,7 @@ ui <- fluidPage(
     background-color: #75b70b55;
     padding:10px"
   ),
+  #new row for bubble chart
   fluidRow(align="center",
            plotlyOutput("bubble_chart", height = "50%")
   ),
@@ -535,6 +538,7 @@ ui <- fluidPage(
     background-color: #75b70b55;
     padding:10px"
   ),
+  #new row for bar chart
   fluidRow(align="center",
            plotlyOutput("barplot", height = "50%")
   ),
@@ -556,20 +560,21 @@ ui <- fluidPage(
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
-  
+  #generate outputs for each chart
   output$bubble_chart <- renderPlotly({
-    bubble_chart(id)
+    bubble_chart(id) #call bubble_chart function with set id
   })
   
   output$phylum_donut <- renderPlotly({
-    phylum_donut(id)
+    phylum_donut(id) #call phylum_donut function with set id
   })  
   
   output$family_donut <- renderPlotly({
-    family_donut(id)
+    family_donut(id)  #call family_donut function with set id
   })  
   
   output$barplot <- renderPlotly({
+    #create barchart using data generating by bar_data function with set id
     all_bars <- bar_data(id) %>%
       ggplot(aes(fill = Phylum, y = Abundance, x = Group,
                  text = paste(Phylum, "\n", str_sub(Abundance, 1, 4), "%"))) +
@@ -581,7 +586,7 @@ server <- function(input, output) {
             axis.title.x=element_blank(),
             axis.title.y=element_blank())
     
-    ggplotly(all_bars, tooltip = "text", height = 700, width = 1100)
+    ggplotly(all_bars, tooltip = "text", height = 700, width = 1100) #make ggplot interactive
   })
 }
 
