@@ -124,10 +124,15 @@ server <- function(input, output) {
       filter(Rank %in% input$rank) %>%
       group_by(Microbacterie) %>%
       mutate(Moyenne = mean(Abundance)) %>%
+      mutate(Prevalence = n()) %>%
       ungroup() %>%
+      mutate(Prevalence = paste0(Prevalence, "/", n_distinct(SampleID), 
+                                 "(", (Prevalence/n_distinct(SampleID))*100, "%)")) %>%
       select(!Abundance)
   )
 
+    output$total <- renderText({})  
+  
     output$full_table <- renderDataTable({
       unique(select(table_data(), Microbacterie, Moyenne, Rank, Prevalence, clade_name))[,c(1,3,5,2,4)]
     })
