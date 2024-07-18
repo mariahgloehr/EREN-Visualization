@@ -461,35 +461,40 @@ ui <- fluidPage(
                         margin-top: -20px;
                         padding-top: 10px;
                         padding-bottom: 10px;'})),
+  ## p() creates a paragraph, text is in quotations, br() indicates a line break
   p(
     "Cher(e) Nutrinaute,",
     br("Merci de votre participation à l'étude NutriNet-Santé ! Pour démontrer notre
     reconnaissance, on vous présente une brève exploration de votre microbiote intestinal unique."),
-    style = "font-size: 24px;
-    text-align:center"
+    style = "font-size: 24px; ## can change size of text
+    text-align:center"  ## can change alingment of text
   ),
+  ## text within strong() will be bolded, can change color
   p(
     strong("N.B. :", style = "color:#e2007a"), "Chaque personne a une composition microbienne unique.
     Cette variation est normale et saine. Ce rapport est dans l'esprit de curiosité et d'amusement,",
     strong("il ne s’agit pas d’un avis médical.", style = "color:#e2007a"),
     style = "font-size: 15px;
     text-align:center;
-    padding-bottom:10px"
+    padding-bottom:10px" # can change space between this text box and following text box
   ),
   p(
     "Votre échantillon a révélé un microbiote intestinal diversifié
     composé de",
     strong(n_distinct(filter(full_data, SampleID == as.character(id))$Species), "espèces",
            style = "color:#e2007a"),
+    ## n_distinct() calculates number of distinct species within this dataframe
     "classifiées de microbactéries. De plus, ces microbactéries appartiennent à",
     strong(n_distinct(filter(phylum_data_full, SampleID == as.character(id))$Phylum), "phylums",
            style = "color:#e2007a"),
     "et", strong(n_distinct(filter(family_data_full, SampleID == as.character(id))$Family), "familles",
                  style = "color:#e2007a"),
-    ".",
+    ". Les graphiques ci-dessous montrent l'abondance relative de chacun de vos phylums et
+    vos dix familles les plus abondantes. Les familles sont colorées en fonction de leur phylum.",
+    br("P.S. tous les graphiques sont interactifs, veuillez explorer !"),
     style = "font-size: 17px;
     text-align:center;
-    background-color: #75b70b55;
+    background-color: #75b70b55; ## can change background color
     padding:10px"
   ),
   fluidRow(
@@ -503,6 +508,8 @@ ui <- fluidPage(
     "Vous avez également",
     strong(n_distinct(filter(genre_data_full, SampleID == as.character(id))$Genre), "genres",
            style = "color:#e2007a"),
+    "de microbactéries. L'ampleur de cet amalgame est représentée dans le graphique ci-dessous ;
+    chaque cercle est un genre, et la taille traduit l'abondance relative.",
     style = "font-size: 17px;
     text-align:center;
     background-color: #75b70b55;
@@ -526,13 +533,15 @@ ui <- fluidPage(
            plotlyOutput("barplot", height = "50%")
   ),
   p(
-    strong("Notice technique :", style = "font-size: 17px"),
-    br("BLAH BLAH"),
+    strong("Notice technique :", style = "font-size: 15px"),
+    br("Les données utilisées pour créer ce rapport ont été
+       obtenues grâce à l'étude NutriGut-Santé et à ses participants volontaires.
+       Toutes les données restent strictement confidentielles."),
     style = "font-size: 12px;
     text-align:center;
     background-color: #2C73D255;
-    width:800px;
-    margin:auto;
+    width:800px;  # can change width
+    margin:auto;  # do not change margin:auto
     padding:10px;
     margin-bottom:10px
     "
