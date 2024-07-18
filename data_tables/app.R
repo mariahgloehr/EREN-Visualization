@@ -108,6 +108,8 @@ ui <- fluidPage(
                              selected = c("Phylum", "UNCLASSIFIED"))
         ),
         mainPanel(
+          span(textOutput("total", style = "color:black; font-size:30px;
+                          font-family:arial; font-weight:bold")),
            dataTableOutput("full_table")
         )
     )
@@ -131,7 +133,9 @@ server <- function(input, output) {
       select(!Abundance)
   )
 
-    output$total <- renderText({})  
+    output$total <- renderText({
+      paste(n_distinct(table_data()$SampleID), "Participants")
+    })  
   
     output$full_table <- renderDataTable({
       unique(select(table_data(), Microbacterie, Moyenne, Rank, Prevalence, clade_name))[,c(1,3,5,2,4)]
