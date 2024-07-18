@@ -54,6 +54,14 @@ full_data <- metadata %>%
   filter(Abundance != 0) %>%
   ungroup()
 
+##table datasets
+
+unclassified_data <- full_data %>%
+  filter(Kingdom == 'UNCLASSIFIED') %>%
+  mutate(Microbacterie == Kingdom) %>%
+  mutate(Rank = "UNCLASSIFIED") %>%
+  select(1:5, Microbacterie, Abundance, Rank, clade_name)
+
 phylum_data <- full_data %>%
   filter(!is.na(Phylum)) %>%
   filter(!str_detect(Phylum, "unclassified")) %>%
