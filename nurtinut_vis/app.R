@@ -242,12 +242,13 @@ family_colors <- function(Phylum){
 full_data <- metadata %>%
   full_join(taxon, by = "SampleID") %>% #join taxon data and metadata by aligning SampleIDs
   mutate(Gender = ifelse(Gender == 1, "Homme", "Femme")) %>% #for labels, in Gender column edit "0" -> "Femme" etc
-  # split clade_name into multiple rank columns, seperating the string at every |
+  # split clade_name into multiple rank columns, separating the string at every "|"
   separate_wider_delim(col = clade_name,
                        delim = "|",
                        names = c("Kingdom", "Phylum", "Class", "Order", "Family", "Genre", "Species", "T"),
                        too_few = "align_start") %>%
   #edit names of each microbacteria, get rid of every p_, f_ etc
+  #i.e. "g__Candidatus__Aristotella" becomes "Candidatus Aristotella"
   mutate(Phylum = ifelse(str_detect(str_sub(str_extract(Phylum, "p_.*"), 4), "_"),
                          str_replace(str_sub(str_extract(Phylum, "p_.*"), 4), "_", " "),
                          str_sub(str_extract(Phylum, "p_.*"), 4)),
@@ -258,21 +259,26 @@ full_data <- metadata %>%
                         str_replace(str_sub(str_extract(Genre, "g_.*"), 4), "_", " "),
                         str_sub(str_extract(Genre, "g_.*"), 4)),
          Species = str_sub(str_extract(Species, "s_.*"), 4)) %>%
-  select(!c("T")) %>%
-  group_by(SampleID) %>%
-  arrange(desc(Abundance), .by_group = TRUE) %>%
-  filter(Abundance != 0)
+  select(!c("T")) %>% # get rid of "T" column
+  group_by(SampleID) %>%                            # arrange dataset by most SampleID and
+  arrange(desc(Abundance), .by_group = TRUE) %>%   # within SampleID by Abundance
+  filter(Abundance != 0) %>%   # will only graph present bacteria so get rid of all entries where Abundance = 0
+  ungroup()
 
+## create dataframe that only includes classified phylum data
 phylum_data_full <- full_data %>%
   filter(!is.na(Phylum)) %>%
   filter(!str_detect(Phylum, "unclassified")) %>%
-  #only select rows where the only information is Phylum
+  #select rows where the only information is Phylum
+  #i.e. only selecting k_bacteria|p_firmicutes, and not k_bacteria|p_firmicutes|g_calendria
+  #(otherwise we double count abundance )
   filter(is.na(Class)) %>%
   filter(is.na(Order)) %>%
   filter(is.na(Family)) %>%
   filter(is.na(Genre)) %>%
   filter(is.na(Species))
 
+## create dataframe that only includes classified family data (same process as above)
 family_data_full <- full_data %>%
   filter(!is.na(Family)) %>%
   filter(!str_detect(Family, "unclassified")) %>%
@@ -280,6 +286,7 @@ family_data_full <- full_data %>%
   filter(is.na(Species)) %>%
   arrange(desc(Abundance))
 
+## create dataframe that only includes classified genre data (same process as above)
 genre_data_full <- full_data %>%
   filter(!is.na(Genre)) %>%
   filter(!str_detect(Genre, "unclassified")) %>%
