@@ -1,6 +1,6 @@
 # Nutrinet Rapport
 
-This project is an app that can autogenerate an interactive report of a partcipant's gut microbiome composition.
+This project is an app that can autogenerate an interactive report of a participant's gut microbiome composition.
 
 ## Installation
 
