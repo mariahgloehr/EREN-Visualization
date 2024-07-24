@@ -1,6 +1,6 @@
 # Nutrinet Rapport
 
-This project is an app that can autogenerate an interactive report of a participant's gut microbiome composition.
+This project is an app that can autogenerate an interactive report of a partcipant's gut microbiome composition.
 
 ## Installation
 
@@ -18,7 +18,8 @@ Run from /P:/Pour Mariah/visualizations/nutrinet/app.R
 
 ## File List
 
--   taxon.txt - TXT file containing DREAM ... Raw file loads into R in following form (made up numbers):
+-   **www** - folder containing images for app.R
+-   **taxon.txt** - TXT file containing DREAM taxon data Raw file loads into R in following form (made up numbers) :
 
 | clade_name                     | ID 1    | ID 2     | ... | ID 103 |
 |--------------------------------|---------|----------|-----|--------|
@@ -29,13 +30,13 @@ Run from /P:/Pour Mariah/visualizations/nutrinet/app.R
 |                                | NA      | NA       | ... | NA     |
 | k\_\_Bacteria\|p\_\_Firmicutes | 75      | 0.000012 |     | 1      |
 
-**Variable guide :**
+Variable guide **:**
 
-**clade_name** = character string of classification of microorganism
+*clade_name* = character string of classification of microorganism
 
-**ID 1** = The relative abundance of microorganism for particpant 1
+*ID 1* = The relative abundance of microorganism for particpant 1
 
--   metadata.txt - TXT file containing metadata of partcipants, Raw file loads into R in following form (made up values):
+-   **metadata.txt** - TXT file containing metadata of DREAM partcipants, Raw file loads into R in following form (made up values):
 
 | SampleID | Gender | Age | Age_class | Region |
 |----------|--------|-----|-----------|--------|
@@ -44,14 +45,16 @@ Run from /P:/Pour Mariah/visualizations/nutrinet/app.R
 | NA       | NA     | NA  | NA        | NA     |
 | 2        | 0      | 39  | 30-39     | B      |
 
-**Variable guide :**
+Variable guide **:**
 
-**SampleID** = integer, unique participant identifier
+*SampleID* = integer, unique participant identifier
 
-**Gender** = integer, 0 represents male, 1 represent female
+*Gender* = integer, 0 represents male, 1 represent female
 
-**Age** = integer, age of participant
+*Age* = integer, age of participant
 
-**Age_class** = character, age range of participant
+*Age_class* = character, age range of participant
 
-**Region** = character, region of participant
+*Region* = character, region of participant
+
+-   **rtools44** - RTools is a set of programs that is required on Windows to build R packages from source.
